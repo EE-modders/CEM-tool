@@ -1,5 +1,5 @@
 bl_info = {
-    "name" : "Empire Earth CEMtool",
+    "name" : "Empire Earth CEM-tool",
     "author" : "zocker_160",
     "description" : "addon for importing and exporting Empire Earth CEM files",
     "blender" : (2, 81, 16),
