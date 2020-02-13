@@ -41,8 +41,8 @@ jobs:
 
     - name: pack Blender Addon
       run: |
-      mkdir -p ./src/blender_addon/addon/io_scene_cem
-      cp ./src/blender_addon/CEMimporter.py ./src/blender_addon/addon/io_scene_cem/
+        mkdir -p ./src/blender_addon/addon/io_scene_cem
+        cp ./src/blender_addon/*.py ./src/blender_addon/addon/io_scene_cem/
 
     - name: save Blender Addon
       uses: actions/upload-artifact@master
