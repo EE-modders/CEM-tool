@@ -47,5 +47,5 @@ jobs:
     - name: save Blender Addon
       uses: actions/upload-artifact@master
       with:
-        name: Blender_Addon
+        name: CEMtool-Blender
         path: ./src/blender_addon/addon
