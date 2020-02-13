@@ -223,9 +223,20 @@ def parse_file(cem_bytes: bytes):
 
     return header, indices, materials, tag_points, frames
 
-
-with open(sys.argv[1], "rb") as f:
-    CEM = f.read()
+try:
+	if sys.argv[1] == '--test':
+		print("#### CEMinfo v0.3 made by zocker_160")
+		print("####")
+		print("WORKS!")
+		sys.exit()
+	
+	with open(sys.argv[1], "rb") as f:
+		CEM = f.read()
+except IndexError:
+	print("#### CEMinfo v0.3 made by zocker_160")
+	print("####")
+	print("ERROR: pls specify a file!")
+	show_exit()
 
 header, indices, materials, tag_points, frames = parse_file(CEM)
 
