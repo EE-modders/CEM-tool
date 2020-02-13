@@ -1,0 +1,40 @@
+name: Python compiler windows
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.x
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install Pillow
+        pip install pyinstaller
+    - name: python version
+      run: python --version
+    - name: pyinstaller version
+      run: pyinstaller --version
+    
+
+    - name: run CEMinfo directly
+      run: python .\src\CEMinfo.py --info
+    
+    - name: compile CEMinfo
+      run: pyinstaller -F .\src\CEMinfo.py
+      
+    - name: run compiled version
+      run: .\dist\CEMinfo.exe --info    
+
+    - name: save compiled files
+      uses: actions/upload-artifact@master
+      with:
+        name: CEMinfo_windows
+        path: .\dist\CEMinfo.exe
