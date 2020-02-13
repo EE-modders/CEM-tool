@@ -5,6 +5,10 @@
 		},
 		{
 			"path": "/media/arbeit/Windows_Daten/Programmierung_Modding/Empire Earth/GitHub/eerv/src/net/coderbot"
+		},
+		{
+			"name": "blender_addon",
+			"path": "blender_addon"
 		}
 	],
 	"settings": {}
