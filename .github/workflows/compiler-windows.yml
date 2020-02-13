@@ -25,13 +25,13 @@ jobs:
     
 
     - name: run CEMinfo directly
-      run: python .\src\CEMinfo.py --info
+      run: python .\src\CEMinfo.py --test
     
     - name: compile CEMinfo
       run: pyinstaller -F .\src\CEMinfo.py
       
     - name: run compiled version
-      run: .\dist\CEMinfo.exe --info    
+      run: .\dist\CEMinfo.exe --test    
 
     - name: save compiled files
       uses: actions/upload-artifact@master
