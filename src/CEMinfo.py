@@ -189,6 +189,7 @@ def parse_file(cem_bytes: bytes):
         frames[i]["lower_bound"] = struct.unpack("<fff", cemfile.read(12))
         frames[i]["upper_bound"] = struct.unpack("<fff", cemfile.read(12))
 
+        print(frames[i]["transform_matrix"])
 
     # print(frames[0])
 
@@ -238,6 +239,8 @@ except IndexError:
 	print("ERROR: pls specify a file!")
 	show_exit()
 
-header, indices, materials, tag_points, frames = parse_file(CEM)
+CEM_parts = get_CEM_parts(CEM)
+
+header, indices, materials, tag_points, frames = parse_file(CEM_parts[0])
 
 show_exit()
