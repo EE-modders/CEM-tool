@@ -3,7 +3,7 @@ bl_info = {
     "author" : "zocker_160",
     "description" : "addon for importing and exporting Empire Earth CEM files",
     "blender" : (2, 81, 16),
-    "version" : (0, 0, 2),
+    "version" : (0, 0, 3),
     "location" : "File > Import",
     "warning" : "only import of CEM v2 files is supported (for now)",
     "category" : "Import-Export"
