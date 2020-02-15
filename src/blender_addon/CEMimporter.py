@@ -9,7 +9,7 @@ import struct
 
 from io import BytesIO
 from math import radians
-from mathutils import Vector
+from mathutils import Vector, Matrix
 
 
 #############################
@@ -56,7 +56,7 @@ def get_CEM_parts(blob: bytes):
             CEM_parts.append(blob[:next_cem+1])
         blob = blob[next_cem+1:]
 
-def parse_file(cem_bytes: bytes):
+def parse_cem(cem_bytes: bytes):
     ## import-specific vars
     header = dict()
     indices = list()
@@ -225,6 +225,12 @@ saved values:
 # blender specific code
 ########################
 
+def transform_vector(vector: Vector, matrix: Matrix):
+    hom_vec = Vector( (vector[0], vector[1], vector[2], 1) )
+    hom_vec = matrix @ hom_vec
+    kath_vec = Vector( (hom_vec[0] / hom_vec[3], hom_vec[1] / hom_vec[3], hom_vec[2] / hom_vec[3]) )
+    return kath_vec
+
 def add_point(point_name: str, location: Vector, collection: bpy.types.Collection, empty: list()):
     empty.append(bpy.data.objects.new(point_name, None))
     empty[-1].empty_display_size = empty_size
@@ -280,7 +286,7 @@ def redraw():
             area.tag_redraw()
 
 ### MAIN function
-def main_function_import_file(filename: str, bTagPoints: bool, lod_lvl: int):
+def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool, lod_lvl: int):
     empty = list()
     edges = []
     mesh_col = list()
@@ -308,15 +314,19 @@ def main_function_import_file(filename: str, bTagPoints: bool, lod_lvl: int):
         vertices = list()
         texture_uvs = list()
 
-        header, indices, materials, tag_points, frames = parse_file(cemobject)
+        header, indices, materials, tag_points, frames = parse_cem(cemobject)
 
         mesh_col.append(bpy.data.collections.new("%i: %s" % (o+1, header["name"])))
         main_col.children.link(mesh_col[o])
 
         ### ADD bounding BOX from the current object
         center_bounding_box = Vector( header["center"] )
+        transformation_matrix = Matrix(frames[0]["transform_matrix"])        
         lower_bound_point = Vector( frames[0]["lower_bound"] )
         upper_bound_point = Vector( frames[0]["upper_bound"] )
+
+        if bTransform:
+            center_bounding_box = transform_vector(center_bounding_box, transformation_matrix)
 
         empty_cube = add_empty_cube("BOUNDING BOX", center_bounding_box, mesh_col[o], empty)        
         #add_point("lower bound", lower_bound_point, mesh_col[o], empty)        
@@ -328,8 +338,45 @@ def main_function_import_file(filename: str, bTagPoints: bool, lod_lvl: int):
         empty_cube.scale[zVal] = abs(diffVec[zVal])
 
 
+        ####################################################### vertices get transformed by the matrix saved inside the file:
+        """
+        example for ship Bismarck:
+        ##### Scene Root:
+        [[1.0, 0.0, 0.0, 0.0], 
+        [0.0, 1.0, 0.0, 0.0], 
+        [0.0, 0.0, 1.0, 0.0], 
+        [0.0, 0.0, 0.0, 1.0]]
+
+        ##### turret_00
+        [[1.0, -1.5099580252808664e-07, 0.0, 0.0], 
+        [1.5099580252808664e-07, 1.0, 0.0, 0.4869990050792694], 
+        [0.0, 0.0, 1.0, 0.08950112760066986], 
+        [0.0, 0.0, 0.0, 1.0]]
+
+        ##### turret_01
+        [[1.0, -1.5099580252808664e-07, 0.0, 5.45201972457221e-09], 
+        [1.5099580252808664e-07, 1.0, 0.0, 0.3635149300098419], 
+        [0.0, 0.0, 1.0, 0.10767261683940887], 
+        [0.0, 0.0, 0.0, 1.0]]
+
+        ##### turret_02
+        [[-1.0, 3.019916050561733e-07, 0.0, 8.17802980890292e-09], 
+        [-3.019916050561733e-07, -1.0, 0.0, -0.5054473876953125], 
+        [0.0, 0.0, 1.0, 0.1103220209479332], 
+        [0.0, 0.0, 0.0, 1.0]]
+
+        ##### turret_03
+        [[-1.0, 3.019916050561733e-07, 0.0, -5.45201972457221e-09], 
+        [-3.019916050561733e-07, -1.0, 0.0, -0.6289314031600952], 
+        [0.0, 0.0, 1.0, 0.09018093347549438], 
+        [0.0, 0.0, 0.0, 1.0]]
+        """
+
         for i in range(header["vertices"]):
-            vertices.append( Vector( (frames[0]["vertices"][i]["point"][xVal], frames[0]["vertices"][i]["point"][yVal], frames[0]["vertices"][i]["point"][zVal]) ))
+            vertex_tmp = Vector( (frames[0]["vertices"][i]["point"][xVal], frames[0]["vertices"][i]["point"][yVal], frames[0]["vertices"][i]["point"][zVal]) )
+            if bTransform: # apply transformation matrix to the vertices
+                vertex_tmp = transform_vector(vertex_tmp, transformation_matrix)
+            vertices.append(vertex_tmp)
             texture_uvs.append( Vector( (frames[0]["vertices"][i]["texture"][xVal], 1-frames[0]["vertices"][i]["texture"][yVal]) ))
 
 
@@ -437,7 +484,8 @@ def main_function_import_file(filename: str, bTagPoints: bool, lod_lvl: int):
 
             for t in range(header["tag_points"]):
                 tmp_vector = Vector( (frames[0]["tag_points"][t][xVal], frames[0]["tag_points"][t][yVal], frames[0]["tag_points"][t][zVal]) )
-                #print(tmp_vector)
+                if bTransform:
+                    tmp_vector = transform_vector(tmp_vector, transformation_matrix)
                 add_point(tag_points[t].decode(), location=tmp_vector, collection=point_col, empty=empty)
 
 

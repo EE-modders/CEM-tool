@@ -21,13 +21,13 @@ from bpy_extras.io_utils import ImportHelper
 
 importlib.reload(CEMimporter)
 
-def import_cem(context, filepath: str, bTagPoints: bool, bCleanup: bool, lod_level: str):
+def import_cem(context, filepath: str, bTagPoints: bool, bCleanup: bool, bTransform: bool, lod_level: str):
     print("starting import of %s" % filepath)
 
     if bCleanup:
         print("CLEANING UP")
         CEMi.cleanup()
-    return CEMi.main_function_import_file(filepath, bTagPoints, int(lod_level) )
+    return CEMi.main_function_import_file(filename=filepath, bTagPoints=bTagPoints, bTransform=bTransform, lod_lvl=int(lod_level) )
 
 
 class ImportCEM(bpy.types.Operator, ImportHelper):
@@ -46,6 +46,11 @@ class ImportCEM(bpy.types.Operator, ImportHelper):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
+    setting_matrix_transform: BoolProperty(
+        name="apply transformation matrix",
+        description="if enabled, the included transformation matrix will get applied to the objects",
+        default=True,
+    )
     setting_tag_points: BoolProperty(
         name="import Tag Points",
         description="imports all Tag Points stored in the CEM file",
@@ -78,7 +83,7 @@ class ImportCEM(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         print(self.filepath, self.setting_cleanup, self.setting_tag_points, self.lod_lvl)
-        if import_cem(context, filepath=self.filepath, bCleanup=self.setting_cleanup, bTagPoints=self.setting_tag_points, lod_level=self.lod_lvl):
+        if import_cem(context, filepath=self.filepath, bCleanup=self.setting_cleanup, bTagPoints=self.setting_tag_points, bTransform=self.setting_matrix_transform, lod_level=self.lod_lvl):
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
