@@ -2,8 +2,8 @@ bl_info = {
     "name" : "Empire Earth CEM-tool",
     "author" : "zocker_160",
     "description" : "addon for importing and exporting Empire Earth CEM files",
-    "blender" : (2, 81, 16),
-    "version" : (0, 0, 3),
+    "blender" : (2, 82, 7),
+    "version" : (0, 0, 4),
     "location" : "File > Import",
     "warning" : "only import of CEM v2 files is supported (for now)",
     "category" : "Import-Export"
@@ -13,10 +13,12 @@ import bpy
 import importlib
 
 from . import CEMimporter as CEMi
+from . import CEMexporter as CEMex
+
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 # ImportHelper is a helper class, defines filename and
 # invoke() function which calls the file selector.
-from bpy_extras.io_utils import ImportHelper
+from bpy_extras.io_utils import ImportHelper, path_reference_mode
 
 
 importlib.reload(CEMimporter)
@@ -29,6 +31,10 @@ def import_cem(context, filepath: str, bTagPoints: bool, bCleanup: bool, bTransf
         CEMi.cleanup()
     return CEMi.main_function_import_file(filename=filepath, bTagPoints=bTagPoints, bTransform=bTransform, lod_lvl=int(lod_level) )
 
+def export_cem(context, filepath: str):
+    print("starting export of %s" % filepath)
+
+    return CEMex.main_function_export_file(filename=filepath)
 
 class ImportCEM(bpy.types.Operator, ImportHelper):
     """Import an Empire Earth (AoC) CEM file"""
@@ -88,24 +94,55 @@ class ImportCEM(bpy.types.Operator, ImportHelper):
         else:
             return {'CANCELLED'}
 
+class ExportCEM(bpy.types.Operator, ImportHelper):
+    """Export an Empire Earth (AoC) CEM file"""
+    bl_idname = "export_scene.cem"  # important since its how bpy.ops.import_test.some_data is constructed
+    bl_label = "Export CEM"
+
+    # ImportHelper mixin class uses this
+    filename_ext = ".cem"
+    check_extension = True
+    path_mode: path_reference_mode
+
+    filter_glob: StringProperty(
+        default="*.cem",
+        options={'HIDDEN'},
+        maxlen=255,  # Max internal buffer length, longer would be clamped.
+    )
+
+    # List of operator properties, the attributes will be assigned
+    # to the class instance from the operator settings before calling.
+    #setting_matrix_transform: BoolProperty(
+    #    name="apply transformation matrix",
+    #    description="if enabled, the included transformation matrix will get applied to the objects",
+    #    default=True,
+    #)
+
+    def execute(self, context):
+        print(self.filepath)
+        if export_cem(context, filepath=self.filepath):
+            return {'FINISHED'}
+        else:
+            return {'CANCELLED'}
 
 # Only needed if you want to add into a dynamic menu
 def menu_func_import(self, context):
-    self.layout.operator(
-        ImportCEM.bl_idname,
-        text="Empire Earth (.cem)"
-    )
+    self.layout.operator(ImportCEM.bl_idname, text="Empire Earth (.cem)")
 
+def menu_func_export(self, context):
+    self.layout.operator(ExportCEM.bl_idname, text="Empire Earth (.cem)")
 
 def register():
     bpy.utils.register_class(ImportCEM)
+    bpy.utils.register_class(ExportCEM)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
-
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 def unregister():
     bpy.utils.unregister_class(ImportCEM)
+    bpy.utils.unregister_class(ExportCEM)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
-
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
 
 if __name__ == "__main__":
