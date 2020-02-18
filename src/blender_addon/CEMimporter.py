@@ -307,7 +307,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
     print("LOD LEVEL: %s" % lod_lvl)
 
     main_col_name = filename.split(os_delimiter)[-1]
-    main_col = add_collection("%s. LOD %i" % (main_col_name, lod_lvl))
+    main_col = add_collection("M:%s.LOD %i" % (main_col_name, lod_lvl))
 
 
     for o, cemobject in enumerate(CEM_PARTS):
@@ -316,7 +316,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
 
         header, indices, materials, tag_points, frames = parse_cem(cemobject)
 
-        mesh_col.append(bpy.data.collections.new("%i: %s" % (o+1, header["name"])))
+        mesh_col.append(bpy.data.collections.new("%i:%s" % (o+1, header["name"].decode())))
         main_col.children.link(mesh_col[o])
 
         ### ADD bounding BOX from the current object
@@ -327,6 +327,9 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
 
         if bTransform:
             center_bounding_box = transform_vector(center_bounding_box, transformation_matrix)
+            lower_bound_point = transform_vector(lower_bound_point, transformation_matrix)
+            upper_bound_point = transform_vector(upper_bound_point, transformation_matrix)
+
 
         empty_cube = add_empty_cube("BOUNDING BOX", center_bounding_box, mesh_col[o], empty)        
         #add_point("lower bound", lower_bound_point, mesh_col[o], empty)        
@@ -379,13 +382,12 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
             vertices.append(vertex_tmp)
             texture_uvs.append( Vector( (frames[0]["vertices"][i]["texture"][xVal], 1-frames[0]["vertices"][i]["texture"][yVal]) ))
 
-
         for m in range(header["materials"]):
             faces = list()
             
-            plane_object_name = "material %i" % (m+1)
+            plane_object_name = "%i:none:%i" % (m+1, materials[m]["texture_index"])
             if materials[m]["material_name"] is not b'':
-                plane_object_name = "%s" % (materials[m]["material_name"])
+                plane_object_name = "%i:%s:%i" % (m+1, materials[m]["material_name"].decode(), materials[m]["texture_index"])
             
             for j in range(materials[m]["triangle_selections"][lod_lvl][1]): # Material length
                 index = j + materials[m]["triangle_selections"][lod_lvl][0] # Material offset
@@ -394,26 +396,26 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
                 #print("length: %i" % (len(indices[lod_lvl][1])))
                 #print(indices[lod_lvl][1][index][xVal])
                 #print(materials[m]["vertex_offset"])
-                x = indices[lod_lvl][1][index][xVal] + materials[m]["vertex_offset"]
-                y = indices[lod_lvl][1][index][yVal] + materials[m]["vertex_offset"]
-                z = indices[lod_lvl][1][index][zVal] + materials[m]["vertex_offset"]
+                x = indices[lod_lvl][1][index][xVal]
+                y = indices[lod_lvl][1][index][yVal]
+                z = indices[lod_lvl][1][index][zVal]
                 faces.append( [x, y, z] )
-
-            main_mesh = bpy.data.meshes.new(name="mesh_%s" % plane_object_name)
-            main_mesh.from_pydata(vertices, list(), faces)
+            
+            # TODO: fix vertex offset!
+            main_mesh = bpy.data.meshes.new(name="%s" % materials[m]["texture_name"].decode())
+            main_mesh.from_pydata(vertices[materials[m]["vertex_offset"]:materials[m]["vertex_offset"]+materials[m]["vertex_count"]], list(), faces)
 
             ### add UV coords
             main_mesh.uv_layers.new(do_init=True)
             for p, polygon in enumerate(main_mesh.polygons):
                 for i, index in enumerate(polygon.loop_indices):
-                    #print("FACE:", faces[p][i])
-                    #print("TEXTURE UV:", texture_uvs[faces[p][i]] )
-                    main_mesh.uv_layers[0].data[index].uv = texture_uvs[faces[p][i]]
+                    print("FACE:", faces[p][i])
+                    print("TEXTURE UV:", texture_uvs[faces[p][i]] )
+                    print("INDEX:", index)
+                    main_mesh.uv_layers[0].data[index].uv = texture_uvs[materials[m]["vertex_offset"]:materials[m]["vertex_offset"]+materials[m]["vertex_count"]][faces[p][i]]
             main_mesh.validate(verbose=True)
             plane_object = bpy.data.objects.new(plane_object_name, main_mesh)
             #bpy.context.collection.objects.link(plane_object)
-
-            #plane_object.location = center_position
 
             mesh_col[o].objects.link(plane_object)
 
