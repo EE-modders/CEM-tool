@@ -204,8 +204,10 @@ def parse_file(cem_bytes: bytes):
     # print(type(frames[0]))
 
 
-    # print(indices[9][1])
-    #print(frames[0]["tag_points"])
+    #print(indices[0][1])
+    #print(frames[0]["vertices"][0])
+    print(frames[0]["lower_bound"])
+    print(frames[0]["upper_bound"])
     #print(tag_points)
     #print(materials[0]["triangle_selections"])
 
