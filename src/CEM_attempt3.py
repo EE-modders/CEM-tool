@@ -97,8 +97,7 @@ def parse_file(cem_bytes: bytes):
     # lambdas in order to improve readability
     read_float_buff = lambda: struct.unpack("<f", cemfile.read(4))[0]
     read_uint32_buff = lambda: struct.unpack("<I", cemfile.read(4))[0]
-
-    read_int_buff = lambda x: int.from_bytes(cemfile.read(x), byteorder="little", signed=False)
+    #read_int_buff = lambda x: int.from_bytes(cemfile.read(x), byteorder="little", signed=False)
 
     header_template = [ "cem_version", "faces", "vertices", "tag_points", "materials", "frames", "child_models", "lod_levels", "name_length" ]
 
@@ -251,7 +250,7 @@ saved values:
 def write_obj(name: str, header: dict(), indices: list(), materials: list(), tag_points: list(), frames: list()):
     filename = name + ".obj"
     xVal = 0
-    yVal = 1    
+    yVal = 1
     zVal = 2
     lod_lvl = 0
 
