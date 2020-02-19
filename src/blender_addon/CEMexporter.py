@@ -128,7 +128,7 @@ def generate_header_info(mesh_col: bpy.types.Collection):
     nVerts = 0
     nFaces = 0
     nMaterials = 0
-    center = (0.,0.,0.)
+    bbox_center = Vector()
 
     for obj in mesh_col.objects:
         try:
@@ -137,16 +137,16 @@ def generate_header_info(mesh_col: bpy.types.Collection):
             nMaterials += 1
         except AttributeError: # Bounding Box doesn't have vertices attribute
             if obj.name.startswith("BOUNDING BOX"):
-                bbox_center = tuple(obj.location)
-                bbox_scale = tuple(obj.scale)
+                bbox_center = obj.location
+                bbox_scale = obj.scale
 
 
     return nVerts, nFaces, nMaterials, bbox_center, bbox_scale
 
 def get_vertex_data(blobject: bpy.types.Object):
     '''returns all vertices, normals, uvs, vertex_indices and the number of vertices of the blender object'''
-    vertices = [ tuple(v.co) for v in blobject.data.vertices ]
-    normals = [ tuple(v.normal) for v in blobject.data.vertices ]
+    vertices = [ v.co for v in blobject.data.vertices ]
+    normals = [ v.normal for v in blobject.data.vertices ]
 
     num_vertices = len(vertices)
     uvs = [0] * num_vertices
@@ -158,7 +158,7 @@ def get_vertex_data(blobject: bpy.types.Object):
             v_index = blobject.data.loops[loop_index].vertex_index
             tmp.append(v_index)
 
-            uvs[v_index] = tuple(blobject.data.uv_layers[0].data[loop_index].uv)
+            uvs[v_index] = blobject.data.uv_layers[0].data[loop_index].uv
         indices.append(tmp)
 
     return vertices, normals, uvs, indices, num_vertices
@@ -175,7 +175,6 @@ def get_bounding_box(center: Vector, scale: Vector):
     edgepoints.append( (center[0] - scale[0], center[1] - scale[1], center[2] - scale[2]) )
 
     return max(edgepoints, key=sum), min(edgepoints, key=sum)
-
 
 def main_function_export_file(filename: str):
     lod_level = 0 # only one LOD level will get exported
@@ -215,7 +214,7 @@ def main_function_export_file(filename: str):
     "lod_levels":1,
     "name_length":len(mesh_col.name.split(':')[1])+1,
     "name":mesh_col.name.split(':')[1].encode(),
-    "center":bbox_center,
+    "center":bbox_center.to_tuple(),
     }
 
     ### materials
@@ -269,16 +268,16 @@ def main_function_export_file(filename: str):
     for j in range(header["frames"]):
         frames.append(dict.fromkeys(frames_template, 0))
 
-        frames[j]["radius"] = 0
+        frames[j]["radius"] = max( [ (v-bbox_center).length for v in vertices ] )**2
         tmp = list()
         for v in range(nVerts):
             tmp.append(dict())
-            tmp[v]["point"] = vertices[v]
-            tmp[v]["normal"] = normals[v]
-            tmp[v]["texture"] = texture_uvs[v]
+            tmp[v]["point"] = vertices[v].to_tuple()
+            tmp[v]["normal"] = normals[v].to_tuple()
+            tmp[v]["texture"] = texture_uvs[v].to_tuple()
         frames[j]["vertices"] = tmp
-        frames[j]["tag_points"] = [ tuple(tp.location) for tp in mesh_col.children["tag points"].objects ]
-        frames[j]["transform_matrix"] = [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
+        frames[j]["tag_points"] = [ tp.location.to_tuple() for tp in mesh_col.children["tag points"].objects ]
+        frames[j]["transform_matrix"] = [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]] # TODO
         frames[j]["lower_bound"] = lowest_point
         frames[j]["upper_bound"] = highest_point
 
