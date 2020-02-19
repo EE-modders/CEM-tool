@@ -1,14 +1,10 @@
 {
 	"folders": [
 		{
-			"path": "."
-		},
-		{
-			"path": "/media/arbeit/Windows_Daten/Programmierung_Modding/Empire Earth/GitHub/eerv/src/net/coderbot"
-		},
-		{
-			"name": "blender_addon",
 			"path": "blender_addon"
+		},
+		{
+			"path": "/media/arbeit/Windows_Daten/Programmierung_Modding/Empire Earth/GitHub/CEM-tool/.github/workflows"
 		}
 	],
 	"settings": {}
