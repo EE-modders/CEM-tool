@@ -136,7 +136,7 @@ def generate_header_info(mesh_col: bpy.types.Collection):
             nFaces += len(obj.data.polygons)
             nMaterials += 1
         except AttributeError: # Bounding Box doesn't have vertices attribute
-            if obj.name.startswith("BOUNDING BOX"):
+            if obj.name.startswith("0:BOUNDING BOX:0"):
                 bbox_center = obj.location
                 bbox_scale = obj.scale
 
@@ -229,26 +229,27 @@ def main_function_export_file(filename: str):
     "texture_name"              # string
     ]
 
-    for i in range(nMaterials):
-        materials.append(dict.fromkeys(material_template, 0))
-        curr_object = mesh_col.objects[i+1]
-        
+    for curr_object in mesh_col.objects:
         matID, matName, matTextureindex = curr_object.name.split(':')
+        if matName == "BOUNDING BOX":
+            continue
+
+        materials.append(dict.fromkeys(material_template, 0))
         vt, nt, uvt, indt, num_vertices = get_vertex_data(curr_object) # get_vertex_data returns vertices, normals, uvs, indices, num_vertices
 
-        materials[i]["material_name_length"] = len(matName)+1
-        materials[i]["material_name"] = matName.encode()
-        materials[i]["texture_index"] = int(matTextureindex)
+        materials[-1]["material_name_length"] = len(matName)+1
+        materials[-1]["material_name"] = matName.encode()
+        materials[-1]["texture_index"] = int(matTextureindex)
 
-        materials[i]["triangle_selections"] = [ (mat_triangle_sel, len(indt)) ]
+        materials[-1]["triangle_selections"] = [ (mat_triangle_sel, len(indt)) ]
         mat_triangle_sel = len(indt)
 
-        materials[i]["vertex_offset"] = len(vertices)
-        materials[i]["vertex_count"] = num_vertices
+        materials[-1]["vertex_offset"] = len(vertices)
+        materials[-1]["vertex_count"] = num_vertices
 
         matTextureName = curr_object.data.name.split('.')[0] # cutoff potential ".00x" from the name, which blender adds
-        materials[i]["texture_name_length"] = len(matTextureName)+1
-        materials[i]["texture_name"] = matTextureName.encode()
+        materials[-1]["texture_name_length"] = len(matTextureName)+1
+        materials[-1]["texture_name"] = matTextureName.encode()
 
         vertices += vt
         normals += nt

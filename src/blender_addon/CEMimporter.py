@@ -331,7 +331,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
             upper_bound_point = transform_vector(upper_bound_point, transformation_matrix)
 
 
-        empty_cube = add_empty_cube("BOUNDING BOX", center_bounding_box, mesh_col[o], empty)        
+        empty_cube = add_empty_cube("0:BOUNDING BOX:0", center_bounding_box, mesh_col[o], empty)        
         #add_point("lower bound", lower_bound_point, mesh_col[o], empty)        
         #add_point("upper bound", upper_bound_point, mesh_col[o], empty)
 
