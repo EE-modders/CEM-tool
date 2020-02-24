@@ -268,7 +268,7 @@ def main_function_export_file(filename: str):
 
     for j in range(header["frames"]):
         frames.append(dict.fromkeys(frames_template, 0))
-
+        print("header center:", header["center"])
         frames[j]["radius"] = max( [ (v-bbox_center).length for v in vertices ] )**2
         tmp = list()
         for v in range(nVerts):
