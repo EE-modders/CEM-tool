@@ -8,4 +8,3 @@ addon:
 	mv ${ADDON_DIR}/addon/${ZIP_NAME} .
 clean:
 	rm -rf ${ADDON_DIR}/addon
-	rm ${ZIP_NAME}
