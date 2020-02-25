@@ -4,6 +4,7 @@ from bpy.types import Operator
 from bpy.props import FloatVectorProperty
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
 
+import os
 import sys
 import struct
 
@@ -292,9 +293,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
     mesh_col = list()
     
 
-    os_delimiter = "/"
-    if sys.platform[:3] is "win":
-        os_delimiter = "\\"
+    os_delimiter = os.sep
 
     with open(filename, "rb") as f:
         CEM = f.read(-1)
