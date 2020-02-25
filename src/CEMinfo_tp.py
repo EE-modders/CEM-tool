@@ -7,6 +7,7 @@ Created 12.02.2020 13:06 CET
 @comment: this is a tool, which shows all info of a CEM file
 """
 
+import os
 import sys
 import struct
 
@@ -23,12 +24,6 @@ cemtool_version = 0.3
 
 magic_number_compressed = b'PK01' # this is the magic number for all compressed files
 magic_number_cem = b'SSMF' # this is the magic number for all CEM formats (decompressed)
-
-header = dict()
-indices = list()
-materials = list()
-tag_points = list()
-frames = list()
 
 
 def get_num_CEM_parts(binary, start_pos=0, num_cem=1):
@@ -52,7 +47,7 @@ def get_CEM_parts(blob: bytes):
 
     while True:
         next_cem = blob[1:].find(magic_number_cem)
-        print(next_cem)
+        # print(next_cem)
         if next_cem == -1:
             CEM_parts.append(blob)
             return CEM_parts
@@ -65,7 +60,13 @@ def show_exit():
 	sys.exit()
 
 def parse_file(cem_bytes: bytes):
-    print("parsing..........\n")
+    header = dict()
+    indices = list()
+    materials = list()
+    tag_points = list()
+    frames = list()
+
+    # print("parsing..........\n")
 
     cemfile = BytesIO(cem_bytes)
 
@@ -75,10 +76,10 @@ def parse_file(cem_bytes: bytes):
         print("This is a (valid) CEM file\n")
     else:
         if magic_number_compressed == file_type:
-            print("you need to decompress the file first!")
+            # print("you need to decompress the file first!")
             show_exit()
         else:
-            print("this is not a CEM file \n")
+            # print("this is not a CEM file \n")
             show_exit()
 
     # lambdas in order to improve readability
@@ -92,13 +93,15 @@ def parse_file(cem_bytes: bytes):
     values = struct.unpack("<IIIIIIIII", cemfile.read(36)) # 9 * 4 bytes = 36
     header = dict(zip(header_template, values))
 
+    if header["cem_version"] is not 2: return [], [], [], [], []
+
     header["name"] = cemfile.read(header["name_length"])[:-1] # [:-1] removes the last byte which is a delimiter (0x00) in this case
 
     header["center"] = struct.unpack("<fff", cemfile.read(12))
 
-    for key, value in header.items():
-        print(key, value)
-    print("\n########## Header length: %d bytes\n" % (52+header["name_length"]) )
+    #for key, value in header.items():
+        # print(key, value)
+    # print("\n########## Header length: %d bytes\n" % (52+header["name_length"]) )
 
 
     for _ in range(header["lod_levels"]):
@@ -116,13 +119,13 @@ def parse_file(cem_bytes: bytes):
 
     tmp = 0
     for x in range(header["lod_levels"]):
-        print("LOD level", x+1)
-        print("faces:", indices[x][0])
+        # print("LOD level", x+1)
+        # print("faces:", indices[x][0])
         # print("values:", indices[x][1])
         tmp += 4 + indices[x][0] * 3*4
 
-    print("\n########## Indices length: %d bytes" % tmp )
-    print("########## Total length up until here: %d bytes\n" % (tmp + 52+header["name_length"]) )
+    # print("\n########## Indices length: %d bytes" % tmp )
+    # print("########## Total length up until here: %d bytes\n" % (tmp + 52+header["name_length"]) )
 
     ###
     # Structure of the materials variable: 
@@ -148,9 +151,9 @@ def parse_file(cem_bytes: bytes):
         materials[x]["texture_name"] = cemfile.read(materials[x]["texture_name_length"])[:-1]
 
 
-        for key, value in materials[x].items():
-            print(key, value)
-        print("\n########## Material%d length: %d bytes\n" % ((x+1),(20 + materials[x]["material_name_length"] + materials[x]["texture_name_length"] + header["lod_levels"]*2*4)) )
+        #for key, value in materials[x].items():
+            # print(key, value)
+        # print("\n########## Material%d length: %d bytes\n" % ((x+1),(20 + materials[x]["material_name_length"] + materials[x]["texture_name_length"] + header["lod_levels"]*2*4)) )
 
 
     tmp = 0
@@ -158,8 +161,8 @@ def parse_file(cem_bytes: bytes):
         l = read_uint32_buff()
         tmp += 4+l
         tag_points.append(cemfile.read(l)[:-1])
-    print(tag_points)
-    print("\n########## Tag points length: %d bytes" % tmp )
+    # print(tag_points)
+    # print("\n########## Tag points length: %d bytes" % tmp )
 
 
     frames_template = [ "radius", "vertices", "tag_points", "transform_matrix", "lower_bound", "upper_bound" ]
@@ -188,11 +191,11 @@ def parse_file(cem_bytes: bytes):
         frames[i]["lower_bound"] = struct.unpack("<fff", cemfile.read(12))
         frames[i]["upper_bound"] = struct.unpack("<fff", cemfile.read(12))
 
-        print(frames[i]["transform_matrix"])
+        # print(frames[i]["transform_matrix"])
 
     # print(frames[0])
 
-    print("########################")
+    #print("########################")
     #print(cemfile.read(-1))
 
     # print(type(header))
@@ -207,41 +210,52 @@ def parse_file(cem_bytes: bytes):
     #print(frames[0]["vertices"][0])
     #print(frames[0]["lower_bound"])
     #print(frames[0]["upper_bound"])
-    print(tag_points)
+    #print(tag_points)
     #print(materials[0]["triangle_selections"])
 
     """
-    print(int.from_bytes(file_type, byteorder="little", signed=False))
-    print(magic_number.view(dtype=np.float32))
-    print(test2.view())
+    # print(int.from_bytes(file_type, byteorder="little", signed=False))
+    # print(magic_number.view(dtype=np.float32))
+    # print(test2.view())
     for x in indices:
-        print("intwert: %d" % (x.item()) )
+        # print("intwert: %d" % (x.item()) )
 
 
     #for i, header in header.items():
     #    objfile.write("%s: %s \n" %(i, header) )
     """
-    print()
+    # print()
 
     return header, indices, materials, tag_points, frames
 
-try:
-	if sys.argv[1] == '--test':
-		print("#### CEMinfo v0.3 made by zocker_160")
-		print("####")
-		print("WORKS!")
-		sys.exit()
-	
-	with open(sys.argv[1], "rb") as f:
-		CEM = f.read()
-except IndexError:
-	print("#### CEMinfo v0.3 made by zocker_160")
-	print("####")
-	print("ERROR: pls specify a file!")
-	show_exit()
+def write_file(results: list()):
+    header = [ 
+		"Model Name",
+        "model number",
+        "tag point names"
+		]
+    with open("!output.csv", "w") as csvfile:
+        csvfile.write(",".join(header)+"\n")
 
-CEM_parts = get_CEM_parts(CEM)
+        for res in results:
+            csvfile.write("%s,%i,%s\n" % (res[0], res[1], res[2]))
 
-header, indices, materials, tag_points, frames = parse_file(CEM_parts[0])
+result = list()
 
-show_exit()
+for f in os.listdir("."):
+    if f.endswith(".cem"):
+        print(f)
+        with open(f, "rb") as cemfile:
+            CEM = cemfile.read()
+
+        CEM_parts = get_CEM_parts(CEM)
+
+        for i, cem in enumerate(CEM_parts):
+            ttpp = list()
+            header, indices, materials, ttpp, frames = parse_file(cem)
+
+            for tp in ttpp:
+                result.append( [ f, i, tp.decode() ] )
+                #print(tp.decode())
+
+write_file(result)
