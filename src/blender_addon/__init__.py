@@ -5,7 +5,7 @@ bl_info = {
     "blender" : (2, 82, 7),
     "version" : (0, 0, 5),
     "location" : "File > Import",
-    "warning" : "only import of CEM v2 files is supported (for now)",
+    "warning" : "only import of CEM v2 files is supported (for now) the export is still WiP!",
     "category" : "Import-Export"
 }
 
