@@ -39,13 +39,11 @@ jobs:
         name: CEMinfo_Linux
         path: ./dist/CEMinfo
 
-    - name: pack Blender Addon
-      run: |
-        mkdir -p ./src/blender_addon/addon/io_scene_cem
-        cp ./src/blender_addon/*.py ./src/blender_addon/addon/io_scene_cem/
+    - name: make Blender Addon
+      run: make
 
     - name: save Blender Addon
       uses: actions/upload-artifact@master
       with:
         name: CEMtool-Blender
-        path: ./src/blender_addon/addon
+        path: ./CEMtool-Blender_WiP.zip
