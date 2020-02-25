@@ -129,19 +129,25 @@ def generate_header_info(mesh_col: bpy.types.Collection):
     nFaces = 0
     nMaterials = 0
     bbox_center = Vector()
+    bbox_points = list()
 
     for obj in mesh_col.objects:
         try:
             nVerts += len(obj.data.vertices)
             nFaces += len(obj.data.polygons)
             nMaterials += 1
+
+            if "main" in obj.name:
+                bbox_points = obj.bound_box
         except AttributeError: # Bounding Box doesn't have vertices attribute
             if obj.name.startswith("0:BOUNDING BOX:0"):
-                bbox_center = obj.location
-                bbox_scale = obj.scale
+                None ## ignore
+                #bbox_center = obj.location
+                #bbox_scale = obj.scale
 
+    if not bbox_points: raise AttributeError("ERROR: no main mesh found! Pls specify a main mesh")
 
-    return nVerts, nFaces, nMaterials, bbox_center, bbox_scale
+    return nVerts, nFaces, nMaterials, bbox_points # bbox_center, bbox_scale
 
 def get_vertex_data(blobject: bpy.types.Object):
     '''returns all vertices, normals, uvs, vertex_indices and the number of vertices of the blender object'''
@@ -163,18 +169,13 @@ def get_vertex_data(blobject: bpy.types.Object):
 
     return vertices, normals, uvs, indices, num_vertices
 
-def get_bounding_box(center: Vector, scale: Vector):
-    edgepoints = list()
-    edgepoints.append( (center[0] + scale[0], center[1] + scale[1], center[2] + scale[2]) )
-    edgepoints.append( (center[0] + scale[0], center[1] + scale[1], center[2] - scale[2]) )
-    edgepoints.append( (center[0] + scale[0], center[1] - scale[1], center[2] + scale[2]) )
-    edgepoints.append( (center[0] + scale[0], center[1] - scale[1], center[2] - scale[2]) )
-    edgepoints.append( (center[0] - scale[0], center[1] + scale[1], center[2] + scale[2]) )
-    edgepoints.append( (center[0] - scale[0], center[1] + scale[1], center[2] - scale[2]) )
-    edgepoints.append( (center[0] - scale[0], center[1] - scale[1], center[2] + scale[2]) )
-    edgepoints.append( (center[0] - scale[0], center[1] - scale[1], center[2] - scale[2]) )
+def get_bounds(bounding_box: list):
+    maxV = Vector( max(bounding_box, key=sum) )
+    minV = Vector( min(bounding_box, key=sum) )
 
-    return max(edgepoints, key=sum), min(edgepoints, key=sum)
+    centerP = (maxV - minV) * 0.5 + minV
+
+    return maxV, minV, centerP
 
 def main_function_export_file(filename: str):
     lod_level = 0 # only one LOD level will get exported
@@ -190,8 +191,8 @@ def main_function_export_file(filename: str):
         chm = len(main_col.children)-1
     else:
         chm = 0
-    nVerts, nFaces, nMaterials, bbox_center, bbox_scale = generate_header_info(mesh_col)
-    lowest_point, highest_point = get_bounding_box(bbox_center, bbox_scale)
+    nVerts, nFaces, nMaterials, bbox_points = generate_header_info(mesh_col)
+    highest_point, lowest_point, bbox_center = get_bounds(bbox_points)
 
     vertices = list()
     normals = list()
