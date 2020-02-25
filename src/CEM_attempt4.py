@@ -350,7 +350,7 @@ saved values:
 def write_obj(name: str, header: dict(), indices: list(), materials: list(), tag_points: list(), frames: list()):
     filename = name + ".obj"
     xVal = 0
-    yVal = 1    
+    yVal = 1
     zVal = 2
     lod_lvl = 0
 
