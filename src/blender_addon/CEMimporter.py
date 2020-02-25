@@ -321,7 +321,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
 
         ### ADD bounding BOX from the current object
         center_bounding_box = Vector( header["center"] )
-        transformation_matrix = Matrix(frames[0]["transform_matrix"])        
+        transformation_matrix = Matrix(frames[0]["transform_matrix"])
         lower_bound_point = Vector( frames[0]["lower_bound"] )
         upper_bound_point = Vector( frames[0]["upper_bound"] )
 
@@ -331,8 +331,8 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
             upper_bound_point = transform_vector(upper_bound_point, transformation_matrix)
 
 
-        empty_cube = add_empty_cube("0:BOUNDING BOX:0", center_bounding_box, mesh_col[o], empty)        
-        #add_point("lower bound", lower_bound_point, mesh_col[o], empty)        
+        empty_cube = add_empty_cube("0:BOUNDING BOX:0", center_bounding_box, mesh_col[o], empty)
+        #add_point("lower bound", lower_bound_point, mesh_col[o], empty)
         #add_point("upper bound", upper_bound_point, mesh_col[o], empty)
 
         diffVec = (lower_bound_point - upper_bound_point) * 0.5
