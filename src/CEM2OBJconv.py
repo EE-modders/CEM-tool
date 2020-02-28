@@ -280,7 +280,7 @@ def write_obj(name: str, header: dict(), indices: list(), materials: list(), tag
     lod_lvl = 0
 
     with open(filename, "wt") as objfile:
-        objfile.write("########## created with CEMconv v%s by zocker_160 \n" % cemtool_version)
+        objfile.write("########## created with CEM2OBJconv v%s by zocker_160 \n" % cemtool_version)
         objfile.write("s off \n") # deactivate smooth shader
         n = header["name"].decode()
         if not n: n = "Scene Root"
