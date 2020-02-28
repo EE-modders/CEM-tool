@@ -6,3 +6,4 @@ src/blender_addon/*test*.py
 src/blender_addon/__pycache__/
 
 *.cem
+.*
