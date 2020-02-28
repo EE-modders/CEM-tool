@@ -38,12 +38,3 @@ jobs:
       with:
         name: CEMinfo_Linux
         path: ./dist/CEMinfo
-
-    - name: make Blender Addon
-      run: make
-
-    - name: save Blender Addon
-      uses: actions/upload-artifact@master
-      with:
-        name: CEMtool-Blender
-        path: ./CEMtool-Blender_WiP.zip
