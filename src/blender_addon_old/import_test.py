@@ -1,25 +1,33 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created 05.02.2020 19:24 CET
+import bpy
 
-@author: zocker_160
-@comment: this is attempt: 3
-"""
+from bpy.types import Operator
+from bpy.props import FloatVectorProperty
+from bpy_extras.object_utils import AddObjectHelper, object_data_add
 
 import struct
 import numpy as np
 
 from io import BytesIO
+from math import radians
+from mathutils import Vector
 
-"""
-for more information on "struct" read this:
-    https://docs.python.org/2/library/struct.html
-so you might understand the code easier
-"""
+empty = list()
 
+def add_point(point_name: str, location: Vector()):
+    
+    empty.append(bpy.data.objects.new(point_name, None))
+    empty[-1].empty_display_size = 0.5
+    empty[-1].empty_display_type = 'PLAIN_AXES'
 
-cemtool_version = 0.3
+    bpy.context.collection.objects.link(empty[-1])
+
+    # empty.location = Vector((0, 0, 1))
+
+#############################
+# original code
+#############################
+
+# cemtool_version = 0.3
 
 magic_number_compressed = b'PK01' # this is the magic number for all compressed files
 magic_number_cem = b'SSMF' # this is the magic number for all CEM formats (decompressed)
@@ -31,7 +39,6 @@ tag_points = list()
 frames = list()
 
 ### some math crap
-
 def rot_matrix_x(matrix, degree):
     alpha = np.radians(degree)
 
@@ -68,14 +75,6 @@ def get_CEM_parts(blob: bytes):
         else:
             CEM_parts.append(blob[:next_cem+1])
         blob = blob[next_cem+1:]
-
-"""
-test1 = np.array([0x53, 0x53, 0x4D, 0x46], dtype=np.uint8)
-test2 = np.uint32(np.frombuffer(b'SSMF', dtype=np.uint32))
-magic_number_cem = bytes([0x53, 0x53, 0x4D, 0x46])
-header = bytes.fromhex('53 53 4D 46').decode()
-print(header)
-"""
 
 def parse_file(cem_bytes: bytes):
     print("parsing..........\n")
@@ -217,22 +216,9 @@ def parse_file(cem_bytes: bytes):
 
 
     # print(indices[9][1])
-    print(frames[0]["tag_points"])
-    print(tag_points)
+    # print(frames[0]["tag_points"])
+    # print(tag_points)
     #print(materials[0]["triangle_selections"])
-
-    """
-    print(int.from_bytes(file_type, byteorder="little", signed=False))
-    print(magic_number.view(dtype=np.float32))
-    print(test2.view())
-    for x in indices:
-        print("intwert: %d" % (x.item()) )
-
-
-    #for i, header in header.items():
-    #    objfile.write("%s: %s \n" %(i, header) )
-    """
-    print()
 
     return header, indices, materials, tag_points, frames
 
@@ -274,8 +260,6 @@ def write_obj(name: str, header: dict(), indices: list(), materials: list(), tag
             objfile.write("vn %f %f %f \n" % (vertex_rot2[0].item(), vertex_rot2[1].item(), vertex_rot2[2].item()))
             objfile.write("vt %f %f \n" % (frames[0]["vertices"][i]["texture"][xVal], 1 - frames[0]["vertices"][i]["texture"][yVal]))
 
-        objfile.write("##########\n")
-
         for m in range(header["materials"]):
             objfile.write("# material name: %s, texture name: %s, vertex count: %d \n" % ( materials[m]["material_name"].decode(), materials[m]["texture_name"].decode(), materials[m]["vertex_count"] ))
             n = materials[m]["material_name"].decode()
@@ -301,35 +285,97 @@ def write_obj(name: str, header: dict(), indices: list(), materials: list(), tag
             objfile.write("p %f %f %f \n" % (vertex_rot3[0].item(), vertex_rot3[1].item(), vertex_rot3[2].item()))
 
 
-#parse_file("test_2.cem")
-#parse_file("triangle2.cem")
-#parse_file("triangle3.cem")
-
-#parse_file("flat model_decompressed.cem")
-
-# header, indices, materials, tag_points, frames = parse_file("models/air_me262_10.cem")
-#parse_file("models/air_me110_10_decompressed.cem")
-#header, indices, materials, tag_points, frames = parse_file("models/nav_bismarck_10_decompressed.cem")
-#parse_file("models/nav_battleship_12.cem")
-#parse_file("models/bld_siege_10.cem")
-#header, indices, materials, tag_points, frames = parse_file("models/air_a10_10.cem")
-#parse_file("models/men_mortar_10.cem")
-
-#write_obj("output5", header, indices, materials, tag_points, frames)
-
-# write_file("flat_1", header, frames)
-
-#with open("models/nav_bismarck_10_decompressed.cem", "rb") as f:
-#    result, name = get_num_CEM_parts(f.read(-1), start_pos=8)
-#    f.seek(0)
-#    CEMfiles = get_CEM_parts(f.read(-1))
-#
-#for CEMfile in CEMfiles:
-#    header, indices, materials, tag_points, frames = parse_file(CEMfile)
-#    write_obj("bismarck1", header, indices, materials, tag_points, frames)
-
-with open("models/nav_bismarck_10_decompressed.cem", "rb") as f:
+with open("air_me262_10.cem", "rb") as f:
     CEM = f.read()
 
 header, indices, materials, tag_points, frames = parse_file(CEM)
-write_obj("bismarck1", header, indices, materials, tag_points, frames)
+#write_obj("bismarck1", header, indices, materials, tag_points, frames)
+
+print(header)
+
+########################
+# blender specific code
+########################
+
+scale_x = 1
+scale_y = 1
+xVal = 0
+yVal = 1    
+zVal = 2
+lod_lvl = 0
+
+vertices = list()
+faces = list()
+edges = []
+
+for i in range(header["vertices"]):
+    vertices.append( Vector( (frames[0]["vertices"][i]["point"][xVal], frames[0]["vertices"][i]["point"][yVal], frames[0]["vertices"][i]["point"][zVal]) ))    
+
+m = 0
+for j in range(materials[m]["triangle_selections"][lod_lvl][1]): # Material length
+    index = j + materials[m]["triangle_selections"][lod_lvl][0] # Material offset    
+    x = indices[lod_lvl][1][index][xVal] + materials[m]["vertex_offset"]
+    y = indices[lod_lvl][1][index][yVal] + materials[m]["vertex_offset"]
+    z = indices[lod_lvl][1][index][zVal] + materials[m]["vertex_offset"]
+    faces.append( [x, y, z] )
+
+
+plane_mesh = bpy.data.meshes.new(name="Scene Root")
+plane_mesh.from_pydata(vertices, edges, faces)
+plane_mesh.validate(verbose=True)
+plane_object = bpy.data.objects.new("ME 262", plane_mesh)
+bpy.context.collection.objects.link(plane_object)
+
+
+
+faces_color = list()
+
+m = 1
+for j in range(materials[m]["triangle_selections"][lod_lvl][1]): # Material length
+    index = j + materials[m]["triangle_selections"][lod_lvl][0] # Material offset    
+    x = indices[lod_lvl][1][index][xVal] + materials[m]["vertex_offset"]
+    y = indices[lod_lvl][1][index][yVal] + materials[m]["vertex_offset"]
+    z = indices[lod_lvl][1][index][zVal] + materials[m]["vertex_offset"]
+    faces_color.append( [x, y, z] )
+
+
+pl_color_mesh = bpy.data.meshes.new(name="Scene Root")
+pl_color_mesh.from_pydata(vertices, edges, faces_color)
+pl_color_mesh.validate(verbose=True)
+pl_color_object = bpy.data.objects.new("player color", pl_color_mesh)
+bpy.context.collection.objects.link(pl_color_object)
+
+
+
+for t in range(header["tag_points"]):
+    tmp_vector = Vector( (frames[0]["tag_points"][t][xVal], frames[0]["tag_points"][t][yVal], frames[0]["tag_points"][t][zVal]) )
+    print(tmp_vector)
+    add_point(tag_points[t].decode(), tmp_vector)
+
+
+
+def add_object(mesh_name: str, object_name: str, verts: list(), faces: list()):
+    scale_x = 1
+    scale_y = 1
+    
+    #verts = [
+    #    Vector((-1 * scale_x, 1 * scale_y, 0)),
+    #    Vector((1 * scale_x, 1 * scale_y, 0)),
+    #    Vector((1 * scale_x, -1 * scale_y, 0)),
+    #    Vector((-1 * scale_x, -1 * scale_y, 0)),
+    #]
+    #faces = [[0, 1, 2, 3]]
+    edges = []
+
+
+    mesh = bpy.data.meshes.new(name=mesh_name)
+    mesh.from_pydata(verts, edges, faces)
+    mesh.validate(verbose=True)
+
+
+    new_object = bpy.data.objects.new(object_name, mesh)
+    bpy.context.collection.objects.link(new_object)
+
+def rotate_object():
+    new_object.rotation_euler.rotate_axis("X", radians(-90))
+    # object.rotation_euler.rotate_axis("Z", radians(90))
