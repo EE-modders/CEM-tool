@@ -4,7 +4,7 @@
 Created 12.02.2020 13:06 CET
 
 @author: zocker_160
-@comment: this is a tool, which shows all info of a CEM file
+@comment: writes all tag points from all cem files inside the current folder into an csv file
 """
 
 import os
