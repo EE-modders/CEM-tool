@@ -33,8 +33,11 @@ jobs:
     - name: run compiled version
       run: .\dist\CEMinfo.exe --test    
 
+    - name: compile CEM2OBJconv
+      run: pyinstaller -F .\src\CEM2OBJconv.py
+
     - name: save compiled files
       uses: actions/upload-artifact@master
       with:
-        name: CEMinfo_windows
-        path: .\dist\CEMinfo.exe
+        name: CEM-tools Windows
+        path: .\dist\*.exe
