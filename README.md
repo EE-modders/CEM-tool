@@ -1,9 +1,11 @@
-# WiP: CEM-tool Blender addon
-Blender addon for editing Empire Earth CEM files + additional tool (CEMinfo) for parsing CEM files
+# WiP: CEM-tools
 
+### included tools
 
-right now this very much WiP and only supports importing CEM v2 files
+- [Blender addon](https://github.com/EE-modders/CEM-tool/tree/blender_addon) for importing and exporting CEM files
+- CEMinfo for parsing CEM files and show debugging information
+- CEM2OBJ converter for converting CEM files to OBJ
 
-### Requirements
+### limitations
 
-Blender 2.80 or newer
+right now the tools are very much WiP and only support CEM v2 files
