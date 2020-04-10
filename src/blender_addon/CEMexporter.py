@@ -4,6 +4,8 @@ from bpy.types import Operator
 from bpy.props import FloatVectorProperty
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
 
+from .messagebox import ShowMessageBox
+
 import sys
 import struct
 
@@ -236,7 +238,10 @@ def main_function_export_file(filename: str):
             continue
 
         materials.append(dict.fromkeys(material_template, 0))
-        if curr_object.mode == 'EDIT': bpy.ops.object.editmode_toggle() # exit edit mode, otherwise export will fail
+        if curr_object.mode == 'EDIT':
+            ShowMessageBox(title="export error", message="please disable edit mode!", icon='ERROR') # export will fail if in edit mode
+            return False
+        #bpy.ops.object.editmode_toggle()
         bpy.ops.object.select_all(action='DESELECT') # deselect all objects
         vt, nt, uvt, indt, num_vertices = get_vertex_data(curr_object) # get_vertex_data returns vertices, normals, uvs, indices, num_vertices
 
