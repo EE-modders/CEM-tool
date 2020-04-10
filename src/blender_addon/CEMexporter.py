@@ -236,6 +236,8 @@ def main_function_export_file(filename: str):
             continue
 
         materials.append(dict.fromkeys(material_template, 0))
+        if curr_object.mode == 'EDIT': bpy.ops.object.editmode_toggle() # exit edit mode, otherwise export will fail
+        bpy.ops.object.select_all(action='DESELECT') # deselect all objects
         vt, nt, uvt, indt, num_vertices = get_vertex_data(curr_object) # get_vertex_data returns vertices, normals, uvs, indices, num_vertices
 
         materials[-1]["material_name_length"] = len(matName)+1
