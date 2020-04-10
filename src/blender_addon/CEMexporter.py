@@ -278,6 +278,7 @@ def main_function_export_file(filename: str):
             tmp.append(dict())
             tmp[v]["point"] = vertices[v].to_tuple()
             tmp[v]["normal"] = normals[v].to_tuple()
+            if texture_uvs[v] == 0: texture_uvs[v] = Vector((0, 0)) # if vertex has to UV point value assigned, it will be 0 (replacing it with (0, 0) vector, because CEM forces a UV value)
             tmp[v]["texture"] = texture_uvs[v].to_tuple()
         frames[j]["vertices"] = tmp
         frames[j]["tag_points"] = [ tp.location.to_tuple() for tp in mesh_col.children["tag points"].objects ]
