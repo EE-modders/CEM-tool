@@ -123,8 +123,7 @@ def generate_cem( header: dict(), indices: list(), materials: list(), tag_points
         frames[frame_num]["upper_bound"][zVal],
     ) )
 
-    cemfile.seek(0)
-    return cemfile.read(-1)
+    return cemfile.getvalue()
 
 def generate_header_info(mesh_col: bpy.types.Collection):
     nVerts = 0
@@ -148,8 +147,7 @@ def generate_header_info(mesh_col: bpy.types.Collection):
                 #bbox_scale = obj.scale
 
     if not bbox_points:
-        ShowMessageBox(title="export error", message="no main mesh found! Pls specify a main mesh", icon='ERROR')
-        return False
+        raise TypeError("no main mesh found! Pls specify a main mesh: example: \"1:main:0\"")
 
     return nVerts, nFaces, nMaterials, bbox_points # bbox_center, bbox_scale
 
@@ -181,26 +179,42 @@ def get_bounds(bounding_box: list):
 
     return maxV, minV, centerP
 
+def check_transforms(blobject: bpy.types.Object):
+    for s in blobject.scale:
+        print(s)
+        if s != 1.0: return False
+    for r in blobject.rotation_euler:
+        print(r)
+        if r != 0.0: return False
+    return True
+
 def main_function_export_file(filename: str):
     lod_level = 0 # only one LOD level will get exported
 
     main_col = bpy.context.scene.collection.children[0]
     CEM = b''
 
-    # for mesh_col in main_col.children:
+    # for mesh_col in main_col.children: ## i is used as iterator, so the code below makes sense :D
+    i = 0 # this is only temporary, because for now child models are not getting exported (otherwise the code below would be bullshit I know)
+
     try:
         mesh_col = main_col.children[0]
     except IndexError:
         ShowMessageBox(title="export error", message="no valid CEM structure found!", icon='ERROR')
         return False
-    i = 0
+    
+    try:
+        nVerts, nFaces, nMaterials, bbox_points = generate_header_info(mesh_col)
+    except TypeError as e:
+        ShowMessageBox(title="export error", message=str(e), icon='ERROR')
+        return False
+    
+    highest_point, lowest_point, bbox_center = get_bounds(bbox_points)
 
     if i == 0:
         chm = len(main_col.children)-1
     else:
         chm = 0
-    nVerts, nFaces, nMaterials, bbox_points = generate_header_info(mesh_col)
-    highest_point, lowest_point, bbox_center = get_bounds(bbox_points)
 
     vertices = list()
     normals = list()
@@ -248,7 +262,9 @@ def main_function_export_file(filename: str):
             ShowMessageBox(title="export error", message="please disable edit mode!", icon='ERROR') # export will fail if in edit mode
             return False
         #bpy.ops.object.editmode_toggle()
-        bpy.ops.object.select_all(action='DESELECT') # deselect all objects
+        bpy.ops.object.select_all(action='DESELECT') # deselect all objects    
+        if not check_transforms(curr_object): # check if transforms are correctly applied - show warning if not, but export anyway
+            ShowMessageBox(title="export warning", message="Pls check your rotation, scaling and location settings, it might look wrong in the game!", icon='INFO')        
         vt, nt, uvt, indt, num_vertices = get_vertex_data(curr_object) # get_vertex_data returns vertices, normals, uvs, indices, num_vertices
 
         materials[-1]["material_name_length"] = len(matName)+1
