@@ -147,7 +147,9 @@ def generate_header_info(mesh_col: bpy.types.Collection):
                 #bbox_center = obj.location
                 #bbox_scale = obj.scale
 
-    if not bbox_points: raise AttributeError("ERROR: no main mesh found! Pls specify a main mesh")
+    if not bbox_points:
+        ShowMessageBox(title="export error", message="no main mesh found! Pls specify a main mesh", icon='ERROR')
+        return False
 
     return nVerts, nFaces, nMaterials, bbox_points # bbox_center, bbox_scale
 
@@ -186,7 +188,11 @@ def main_function_export_file(filename: str):
     CEM = b''
 
     # for mesh_col in main_col.children:
-    mesh_col = main_col.children[0]
+    try:
+        mesh_col = main_col.children[0]
+    except IndexError:
+        ShowMessageBox(title="export error", message="no valid CEM structure found!", icon='ERROR')
+        return False
     i = 0
 
     if i == 0:
