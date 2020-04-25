@@ -1,0 +1,29 @@
+- impact_1
+- impact_02
+- impact_03
+- impact_04
+- impact_05
+- impact_06
+- impact_07
+- impact_08
+- impact_09
+- impact_10
+
+Note: I haven't used more than 10 of impact tag points
+
+- attack
+
+- 2dfire_01
+- 2dfire_02
+
+- 2dexplosion_01
+- 2dexplosion_02
+
+- weapon_mount_1
+- weapon mount_2
+
+- light_0_128_0_500_500_0
+- light_128_0_0_500_500_0
+- light_128_0_0_500_1000_0.001
+- light_128_0_0_500_1000_0
+- light_128_128_128_500_500_0
