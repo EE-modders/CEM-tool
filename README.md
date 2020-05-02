@@ -7,5 +7,9 @@
 - **CEM2OBJ** converter for converting CEM files to OBJ
 
 ### limitations
+- only CEM v2 fiels are supported
+- does not work with animated objects
+- export does not work with objects with more than 1 child model
 
-right now the tools are very much WiP and only support CEM v2 files
+
+**important:** please do not ask for tutorials on the Blender Addon, because there are none, it is WiP for a reason.
