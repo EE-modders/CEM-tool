@@ -1,10 +1,10 @@
 CEM_test/.directory
-src/blender_addon/io_scene_cem
 
+src/blender_addon
 src/blender_addon/*test*.py
-
 src/blender_addon/__pycache__/
 
 *.cem
 *.zip
 .*
+
