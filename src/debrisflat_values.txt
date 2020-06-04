@@ -1,0 +1,44 @@
+-1
+parsing..........
+
+This is a (valid) CEM file
+
+cem_version 2
+faces 2
+vertices 6
+tag_points 0
+materials 1
+frames 1
+child_models 0
+lod_levels 1
+name_length 11
+name b'Scene Root'
+center (0.08172943443059921, 0.49999991059303284, 0.00010311882215319201)
+
+########## Header length: 63 bytes
+
+LOD level 1
+faces: 2
+
+########## Indices length: 28 bytes
+########## Total length up until here: 91 bytes
+
+material_name_length 1
+material_name b''
+texture_index 0
+triangle_selections [(0, 2)]
+vertex_offset 0
+vertex_count 6
+texture_name_length 1
+texture_name b''
+
+########## Material1 length: 30 bytes
+
+[]
+
+########## Tag points length: 0 bytes
+[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
+########################
+[]
+
+press Enter to close..........

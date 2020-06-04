@@ -1,0 +1,22 @@
+SSMF
+version major 1
+version minor 3
+frames 1
+(??) lod_levels/frames 1
+(?) unique vertices 155
+faces/triangles 256
+(??) frames 1 (has player color ???)
+(??) number of unique UVs 199
+tag_points 14
+child_models 0
+name_length 11
+name b'Scene Root'
+center(x, y, z)
+
+##### Header 67 bytes
+
+0x00 delimiter or just 00 byte (?)
+155 * int values (?)
+256 * 3 * 40 bytes (UVindex, Xval, Yval, 1.0, 1.0, 1.0, 1.0, 1.0, 0, 0)
+int name length
+string name

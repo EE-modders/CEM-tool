@@ -1,0 +1,55 @@
+-1
+parsing..........
+
+This is a (valid) CEM file
+
+cem_version 2
+faces 256
+vertices 315
+tag_points 14
+materials 2
+frames 1
+child_models 0
+lod_levels 1
+name_length 11
+name b'Scene Root'
+center (0.0003612041473388672, 0.03323262929916382, 0.5)
+
+########## Header length: 63 bytes
+
+LOD level 1
+faces: 256
+
+########## Indices length: 3076 bytes
+########## Total length up until here: 3139 bytes
+
+material_name_length 1
+material_name b''
+texture_index 0
+triangle_selections [(0, 160)]
+vertex_offset 0
+vertex_count 203
+texture_name_length 27
+texture_name b'air_observationballoon_10T'
+
+########## Material1 length: 56 bytes
+
+material_name_length 13
+material_name b'player color'
+texture_index 0
+triangle_selections [(160, 96)]
+vertex_offset 203
+vertex_count 112
+texture_name_length 27
+texture_name b'air_observationballoon_10T'
+
+########## Material2 length: 68 bytes
+
+[b'2dexplosion_1', b'2dfire_1', b'attack', b'damage_trail_1', b'impact_1', b'impact_2', b'impact_3', b'impact_4', b'impact_5', b'light_255_255_255_0_1000_1000', b'light_255_255_255_0_1000_1000', b'light_255_255_255_500_1000_1000', b'light_255_255_255_500_1000_1001', b'water_ripple_1']
+
+########## Tag points length: 285 bytes
+[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
+########################
+[b'2dexplosion_1', b'2dfire_1', b'attack', b'damage_trail_1', b'impact_1', b'impact_2', b'impact_3', b'impact_4', b'impact_5', b'light_255_255_255_0_1000_1000', b'light_255_255_255_0_1000_1000', b'light_255_255_255_500_1000_1000', b'light_255_255_255_500_1000_1001', b'water_ripple_1']
+
+press Enter to close..........
