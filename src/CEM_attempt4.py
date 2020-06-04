@@ -304,7 +304,7 @@ def parse_file(cem_bytes: bytes):
 
     # print(frames[0])
 
-    print("########################")
+    print("######################## ------------- eeeeeeeeeee")
     #print(cemfile.read(-1))
 
     # print(type(header))
@@ -314,11 +314,11 @@ def parse_file(cem_bytes: bytes):
     # print(type(frames))
     # print(type(frames[0]))
 
-
+    print(indices)
     # print(indices[9][1])
-    print(frames[0]["tag_points"])
-    print(tag_points)
-    #print(materials[0]["triangle_selections"])
+    # print(frames[0]["tag_points"])
+    # print(tag_points)
+    # print(materials[0]["triangle_selections"])
 
     """
     print(int.from_bytes(file_type, byteorder="little", signed=False))
@@ -427,7 +427,7 @@ def write_obj(name: str, header: dict(), indices: list(), materials: list(), tag
 #    header, indices, materials, tag_points, frames = parse_file(CEMfile)
 #    write_obj("bismarck1", header, indices, materials, tag_points, frames)
 
-with open("air_me262_10.cem", "rb") as f:
+with open("air_balloon_09.2.cem", "rb") as f:
     CEM = f.read()
 
 header, indices, materials, tag_points, frames = parse_file(CEM)
@@ -435,6 +435,6 @@ header, indices, materials, tag_points, frames = parse_file(CEM)
 print("##################################### CEM exporter output")
 new_cemfile_bytes = generate_cem(header, indices, materials, tag_points, frames)
 
-with open("new_ME262.cem", "wb") as nCEM:
-    nCEM.write(new_cemfile_bytes)
+#with open("new_ME262.cem", "wb") as nCEM:
+#    nCEM.write(new_cemfile_bytes)
 
