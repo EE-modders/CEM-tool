@@ -85,7 +85,7 @@ def generate_cem( header: dict(), indices: list(), materials: list(), tag_points
     cemfile = BytesIO(b'')
 
     cemfile.write(magic_number_cem)
-    cemfile.write( struct.pack("<IIIIIIIII", 
+    cemfile.write( struct.pack("<9I", 
         header["cem_version"],
         header["faces"],
         header["vertices"],
@@ -146,7 +146,7 @@ def generate_cem( header: dict(), indices: list(), materials: list(), tag_points
         ) )
     for tpoint in frames[frame_num]["tag_points"]:
         cemfile.write( struct.pack("<fff", tpoint[xVal], tpoint[yVal], tpoint[zVal]) )
-    cemfile.write( struct.pack("<ffffffffffffffff",
+    cemfile.write( struct.pack("<16f",
         1.0, 0.0, 0.0, 0.0,
         0.0, 1.0, 0.0, 0.0,
         0.0, 0.0, 1.0, 0.0,
@@ -192,7 +192,7 @@ def parse_file(cem_bytes: bytes):
 
     header_template = [ "cem_version", "faces", "vertices", "tag_points", "materials", "frames", "child_models", "lod_levels", "name_length" ]
 
-    values = struct.unpack("<IIIIIIIII", cemfile.read(36)) # 9 * 4 bytes = 36
+    values = struct.unpack("<9I", cemfile.read(36)) # 9 * 4 bytes = 36
     header = dict(zip(header_template, values))
 
     if header["cem_version"] != 2:
