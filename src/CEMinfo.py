@@ -89,7 +89,7 @@ def parse_file(cem_bytes: bytes):
 
     header_template = [ "cem_version", "faces", "vertices", "tag_points", "materials", "frames", "child_models", "lod_levels", "name_length" ]
 
-    values = struct.unpack("<IIIIIIIII", cemfile.read(36)) # 9 * 4 bytes = 36
+    values = struct.unpack("<9I", cemfile.read(36)) # 9 * 4 bytes = 36
     header = dict(zip(header_template, values))
 
     header["name"] = cemfile.read(header["name_length"])[:-1] # [:-1] removes the last byte which is a delimiter (0x00) in this case
@@ -190,24 +190,26 @@ def parse_file(cem_bytes: bytes):
 
         print(frames[i]["transform_matrix"])
 
-    # print(frames[0])
+    #print(frames[0])
 
     print("########################")
     #print(cemfile.read(-1))
 
-    # print(type(header))
-    # print(type(indices))
-    # print(type(materials))
-    # print(type(tag_points))
-    # print(type(frames))
-    # print(type(frames[0]))
+    #print(type(header))
+    #print(type(indices))
+    #print(type(materials))
+    #print(type(tag_points))
+    #print(type(frames))
+    #print(type(frames[0]))
 
 
-    #print(indices[0][1])
-    #print(frames[0]["vertices"][0])
+    print(indices[0][0])
+    print(indices[0][1])
+    #print(frames[0]["vertices"])
+    #print(frames[0]["radius"])
     #print(frames[0]["lower_bound"])
     #print(frames[0]["upper_bound"])
-    print(tag_points)
+    #print(tag_points)
     #print(materials[0]["triangle_selections"])
 
     """
