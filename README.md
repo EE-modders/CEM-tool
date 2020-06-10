@@ -2,7 +2,7 @@
 
 Blender addon for editing Empire Earth CEM files + additional tool (CEMinfo) for parsing CEM files
 
-right now this very much WiP and only supports importing CEM v2 files
+right now this very much WiP and only supports CEM v2 files
 
 ### Requirements
 

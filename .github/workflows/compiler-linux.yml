@@ -39,9 +39,6 @@ jobs:
       with:
         name: CEMinfo_Linux
         path: ./dist/CEMinfo
-
-    - name: compile Blender Addon code
-      run: python -m compileall ./src/blender_addon
     
     - name: make Blender Addon
       run: make
