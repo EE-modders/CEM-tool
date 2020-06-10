@@ -18,7 +18,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install Pillow
         pip install pyinstaller
-        python -m compileall ./src/blender_addon
+
     - name: python version
       run: python --version
     - name: pyinstaller version
@@ -40,6 +40,9 @@ jobs:
         name: CEMinfo_Linux
         path: ./dist/CEMinfo
 
+    - name: compile Blender Addon code
+      run: python -m compileall ./src/blender_addon
+    
     - name: make Blender Addon
       run: make
 
@@ -47,4 +50,4 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: CEMtool-Blender
-        path: ./CEMtool-Blender_WiP10.zip
+        path: ./CEMtool-Blender_WiP11.zip
