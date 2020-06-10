@@ -1,9 +1,9 @@
 ADDON_DIR=./src/blender_addon
-ZIP_NAME="CEMtool-Blender_WiP10.zip"
+ZIP_NAME="CEMtool-Blender_WiP11.zip"
 
-addon:	
+addon:
 	mkdir -p ${ADDON_DIR}/addon/io_scene_cem
-	cp ${ADDON_DIR}/*.py ${ADDON_DIR}/addon/io_scene_cem/
+	cp ${ADDON_DIR}/*.pyc ${ADDON_DIR}/addon/io_scene_cem/
 	cd ${ADDON_DIR}/addon/ && zip -r ${ZIP_NAME} io_scene_cem/
 	mv ${ADDON_DIR}/addon/${ZIP_NAME} .
 clean:

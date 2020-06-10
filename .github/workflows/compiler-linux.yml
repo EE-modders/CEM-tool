@@ -18,6 +18,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install Pillow
         pip install pyinstaller
+        python -m compileall ./src/blender_addon
     - name: python version
       run: python --version
     - name: pyinstaller version
