@@ -286,7 +286,7 @@ def main_function_export_file(filename: str):
             materials[-1]["texture_index"] = int(matTextureindex)
 
             materials[-1]["triangle_selections"] = [ (mat_triangle_sel, len(indt)) ]
-            mat_triangle_sel = len(indt)
+            mat_triangle_sel += len(indt)
 
             materials[-1]["vertex_offset"] = len(vertices)
             materials[-1]["vertex_count"] = num_vertices
