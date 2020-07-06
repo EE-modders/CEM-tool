@@ -137,17 +137,12 @@ def generate_header_info(mesh_col: bpy.types.Collection):
             nVerts += len(obj.data.vertices)
             nFaces += len(obj.data.polygons)
             nMaterials += 1
-
-            if "main" in obj.name:
-                bbox_points = obj.bound_box
+            bbox_points += obj.bound_box
         except AttributeError: # Bounding Box doesn't have vertices attribute
             if obj.name.startswith("0:BOUNDING BOX:0"):
                 None ## ignore
                 #bbox_center = obj.location
                 #bbox_scale = obj.scale
-
-    if not bbox_points:
-        raise TypeError("no main mesh found! Pls specify a main mesh: example: \"1:main:0\"")
 
     return nVerts, nFaces, nMaterials, bbox_points # bbox_center, bbox_scale
 
