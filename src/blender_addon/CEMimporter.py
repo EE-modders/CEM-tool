@@ -315,6 +315,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
 
         header, indices, materials, tag_points, frames = parse_cem(cemobject)
 
+        # TODO: use function to clean this up!
         mesh_col.append(bpy.data.collections.new("%i:%s" % (o+1, header["name"].decode())))
         main_col.children.link(mesh_col[o])
 
