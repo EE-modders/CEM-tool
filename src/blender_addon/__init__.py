@@ -126,6 +126,40 @@ class ExportCEM(bpy.types.Operator, ImportHelper):
         else:
             return {'CANCELLED'}
 
+class PrepareCemOperator(bpy.types.Operator):
+    bl_idname = "sequencer.collection_operator"
+    bl_label = "Create New CEM Structure"
+    bl_description = "Creates new CEM structure needed for exporting"
+
+    def add_cube_placeholder(self, name: str, collection: bpy.types.Collection):
+        tmp_obj = bpy.data.objects.new(name, None)
+        tmp_obj.empty_display_type = 'CUBE'
+
+        collection.objects.link(tmp_obj)
+
+    def add_empty_placeholder(self, name: str, collection: bpy.types.Collection):
+        tmp_obj = bpy.data.objects.new(name, None)
+        tmp_obj.empty_display_size = CEMi.empty_size
+        tmp_obj.empty_display_type = 'PLAIN_AXES'
+
+        collection.objects.link(tmp_obj)
+
+    def execute(self, context):
+        print("creating fresh CEM structure")
+
+        main_col = CEMi.add_collection("M:newUnit.cem.LOD 0")
+        scene_root_col = CEMi.add_collection_child(name="1:Scene Root", parent_collection=main_col)
+        tag_point_col = CEMi.add_collection_child(name="tag points", parent_collection=scene_root_col)
+
+        self.add_cube_placeholder(name="1:none:0", collection=scene_root_col)
+        self.add_cube_placeholder(name="2:player color:0", collection=scene_root_col)
+
+        self.add_empty_placeholder(name="attack", collection=tag_point_col)
+        self.add_empty_placeholder(name="damage_trail_1", collection=tag_point_col)
+        self.add_empty_placeholder(name="weapon_mount_1", collection=tag_point_col)
+
+        return {'FINISHED'}
+
 # Only needed if you want to add into a dynamic menu
 def menu_func_import(self, context):
     self.layout.operator(ImportCEM.bl_idname, text="Empire Earth (.cem)")
@@ -136,12 +170,14 @@ def menu_func_export(self, context):
 def register():
     bpy.utils.register_class(ImportCEM)
     bpy.utils.register_class(ExportCEM)
+    bpy.utils.register_class(PrepareCemOperator)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
 def unregister():
     bpy.utils.unregister_class(ImportCEM)
     bpy.utils.unregister_class(ExportCEM)
+    bpy.utils.unregister_class(PrepareCemOperator)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
