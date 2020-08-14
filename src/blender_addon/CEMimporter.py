@@ -271,12 +271,12 @@ def add_object(mesh_name: str, object_name: str, verts: list(), faces: list()):
     new_object = bpy.data.objects.new(object_name, mesh)
     bpy.context.collection.objects.link(new_object)
 
-def add_collection(name: str):
+def add_collection(name: str) -> bpy.types.Collection:
     new_col = bpy.data.collections.new(name)
     bpy.context.scene.collection.children.link(new_col)
     return new_col
 
-def add_collection_child(name: str, parent_collection: bpy.types.Collection):
+def add_collection_child(name: str, parent_collection: bpy.types.Collection) -> bpy.types.Collection:
     new_col = bpy.data.collections.new(name)
     parent_collection.children.link(new_col)
     return new_col
