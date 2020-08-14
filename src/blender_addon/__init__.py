@@ -151,8 +151,8 @@ class PrepareCemOperator(bpy.types.Operator):
         scene_root_col = CEMi.add_collection_child(name="1:Scene Root", parent_collection=main_col)
         tag_point_col = CEMi.add_collection_child(name="tag points", parent_collection=scene_root_col)
 
-        self.add_cube_placeholder(name="1:none:0", collection=scene_root_col)
-        self.add_cube_placeholder(name="2:player color:0", collection=scene_root_col)
+        self.add_cube_placeholder(name="1:none-tmp:0", collection=scene_root_col)
+        self.add_cube_placeholder(name="2:player color-tmp:0", collection=scene_root_col)
 
         self.add_empty_placeholder(name="attack", collection=tag_point_col)
         self.add_empty_placeholder(name="damage_trail_1", collection=tag_point_col)
