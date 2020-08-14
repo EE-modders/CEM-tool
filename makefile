@@ -1,5 +1,5 @@
 ADDON_DIR=./src/blender_addon
-ZIP_NAME="CEMtool-Blender_WiP13.zip"
+ZIP_NAME="CEMtool-Blender_WiP14.zip"
 
 addon:
 	mkdir -p ${ADDON_DIR}/addon/io_scene_cem
