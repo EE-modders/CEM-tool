@@ -401,9 +401,11 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
                 z = indices[lod_lvl][1][index][zVal]
                 faces.append( [x, y, z] )
             
-            # TODO: fix vertex offset!
+            mat_vertex_offset = materials[m]["vertex_offset"]
+            mar_vertex_count = materials[m]["vertex_count"]
+
             main_mesh = bpy.data.meshes.new(name="%s" % materials[m]["texture_name"].decode())
-            main_mesh.from_pydata(vertices[materials[m]["vertex_offset"]:materials[m]["vertex_offset"]+materials[m]["vertex_count"]], list(), faces)
+            main_mesh.from_pydata(vertices[mat_vertex_offset : mat_vertex_offset + mar_vertex_count], list(), faces)
 
             ### add UV coords
             main_mesh.uv_layers.new(do_init=True)
@@ -412,7 +414,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
                     print("FACE:", faces[p][i])
                     print("TEXTURE UV:", texture_uvs[faces[p][i]] )
                     print("INDEX:", index)
-                    main_mesh.uv_layers[0].data[index].uv = texture_uvs[materials[m]["vertex_offset"]:materials[m]["vertex_offset"]+materials[m]["vertex_count"]][faces[p][i]]
+                    main_mesh.uv_layers[0].data[index].uv = texture_uvs[mat_vertex_offset : mat_vertex_offset + mar_vertex_count][faces[p][i]]
             main_mesh.validate(verbose=True)
             plane_object = bpy.data.objects.new(plane_object_name, main_mesh)
             #bpy.context.collection.objects.link(plane_object)
