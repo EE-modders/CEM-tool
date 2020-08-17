@@ -377,8 +377,6 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
 
         for i in range(header["vertices"]):
             vertex_tmp = Vector( (frames[0]["vertices"][i]["point"][xVal], frames[0]["vertices"][i]["point"][yVal], frames[0]["vertices"][i]["point"][zVal]) )
-            if bTransform: # apply transformation matrix to the vertices
-                vertex_tmp = transform_vector(vertex_tmp, transformation_matrix)
             vertices.append(vertex_tmp)
             texture_uvs.append( Vector( (frames[0]["vertices"][i]["texture"][xVal], 1-frames[0]["vertices"][i]["texture"][yVal]) ))
 
@@ -416,7 +414,11 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
                     print("INDEX:", index)
                     main_mesh.uv_layers[0].data[index].uv = texture_uvs[mat_vertex_offset : mat_vertex_offset + mar_vertex_count][faces[p][i]]
             main_mesh.validate(verbose=True)
+            
             plane_object = bpy.data.objects.new(plane_object_name, main_mesh)
+            if bTransform:
+                plane_object.matrix_world = transformation_matrix
+
             #bpy.context.collection.objects.link(plane_object)
 
             mesh_col[o].objects.link(plane_object)
