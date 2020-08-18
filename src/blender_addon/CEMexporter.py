@@ -11,7 +11,8 @@ import struct
 
 from io import BytesIO
 from math import radians
-from mathutils import Vector
+from mathutils import Vector, Matrix
+
 
 #############################
 # original code
@@ -125,6 +126,16 @@ def generate_cem( header: dict(), indices: list(), materials: list(), tag_points
 
     return cemfile.getvalue()
 
+########################
+# blender specific code
+########################
+
+def inverse_transform_vector(vector: Vector, matrix: Matrix):
+    hom_vec = Vector( (vector[0], vector[1], vector[2], 1) )
+    hom_vec = matrix.inverted() @ hom_vec
+    kath_vec = Vector( (hom_vec[0] / hom_vec[3], hom_vec[1] / hom_vec[3], hom_vec[2] / hom_vec[3]) )
+    return kath_vec
+
 def generate_header_info(mesh_col: bpy.types.Collection):
     nVerts = 0
     nFaces = 0
@@ -178,9 +189,11 @@ def check_transforms(blobject: bpy.types.Object):
     for s in blobject.scale:
         print(s)
         if s != 1.0: return False
-    for r in blobject.rotation_euler:
-        print(r)
-        if r != 0.0: return False
+    
+    # rotation is allowed!! - so commenting that out
+    #for r in blobject.rotation_euler:
+    #    print(r)
+    #    if r != 0.0: return False
     return True
 
 def main_function_export_file(filename: str):
@@ -221,12 +234,11 @@ def main_function_export_file(filename: str):
         materials = list()
         mat_triangle_sel = 0
         frames = list()
-
-        # tag points on child models will get ignored (for now)
-        if i == 0:
-            num_tag_points = len(mesh_col.children["tag points"].objects)
-        else:
-            num_tag_points = 0
+        
+        #if i == 0:
+        num_tag_points = len(mesh_col.children[0].objects)
+        #else:
+        #    num_tag_points = 0
 
         ### header
         header = { 
@@ -294,17 +306,15 @@ def main_function_export_file(filename: str):
             normals += nt
             texture_uvs += uvt
             indices_only += indt
+            transformation_matrix = curr_object.matrix_world
 
         ### indices
         indices[lod_level][0] = len(indices_only)
         indices[lod_level][1] = indices_only
 
         ### tag points
-        # tag points on child models will get ignored (for now)
-        if i == 0:
-            tag_points = [ tp.name.split('.')[0].encode() for tp in mesh_col.children["tag points"].objects ]
-        else:
-            tag_points = []
+        tag_points = [ tp.name.split('.')[0].encode() for tp in mesh_col.children[0].objects ]
+
 
         ### frames
         frames_template = [ "radius", "vertices", "tag_points", "transform_matrix", "lower_bound", "upper_bound" ]
@@ -321,12 +331,11 @@ def main_function_export_file(filename: str):
                 if texture_uvs[v] == 0: texture_uvs[v] = Vector((0, 0)) # if vertex has to UV point value assigned, it will be 0 (replacing it with (0, 0) vector, because CEM forces a UV value)
                 tmp[v]["texture"] = texture_uvs[v].to_tuple()
             frames[j]["vertices"] = tmp
-            if i == 0:
-                tmp_arr_tp = [ tp.location.to_tuple() for tp in mesh_col.children["tag points"].objects ]
-            else:
-                tmp_arr_tp = []
+
+            tmp_arr_tp = [ inverse_transform_vector(vector=tp.location, matrix=transformation_matrix) for tp in mesh_col.children[0].objects ]
+
             frames[j]["tag_points"] = tmp_arr_tp
-            frames[j]["transform_matrix"] = [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]] # TODO
+            frames[j]["transform_matrix"] = [ list(vector) for vector in transformation_matrix.row ]
             frames[j]["lower_bound"] = lowest_point
             frames[j]["upper_bound"] = highest_point
 

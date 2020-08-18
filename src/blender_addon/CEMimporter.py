@@ -232,14 +232,30 @@ def transform_vector(vector: Vector, matrix: Matrix):
     kath_vec = Vector( (hom_vec[0] / hom_vec[3], hom_vec[1] / hom_vec[3], hom_vec[2] / hom_vec[3]) )
     return kath_vec
 
-def add_point(point_name: str, location: Vector, collection: bpy.types.Collection, empty: list()):
+# TODO: here is a problem, because in blender empty objects do *NOT* have an origin! (and I need to one not overwrite the world matrix)
+def add_point(point_name: str, location: Vector, trans_matrix: Matrix, collection: bpy.types.Collection, empty: list()):
     empty.append(bpy.data.objects.new(point_name, None))
     empty[-1].empty_display_size = empty_size
     empty[-1].empty_display_type = 'PLAIN_AXES'
-    empty[-1].location = location
+    #empty[-1].matrix_world = trans_matrix
+    empty[-1].location += transform_vector(vector=location, matrix=trans_matrix)
+    #empty[-1].matrix_world.translation += location # This does not work :(
 
     #bpy.context.collection.objects.link(empty[-1])
     collection.objects.link(empty[-1])
+
+def add_point_cone(point_name: str, location: Vector, trans_matrix: Matrix, collection: bpy.types.Collection, empty: list()):
+    bpy.ops.mesh.primitive_cone_add(calc_uvs=False, vertices=5)
+    empty.append(bpy.context.view_layer.objects.active)
+    empty[-1].select_set(False)
+    empty[-1].name = point_name    
+    empty[-1].matrix_world = trans_matrix
+    empty[-1].location += location
+
+    empty[-1].scale = [0.01] * 3
+
+    collection.objects.link(empty[-1])
+
 
 def add_empty_cube(cube_name: str, location: Vector, collection: bpy.types.Collection, empty: list()):
     empty.append(bpy.data.objects.new(cube_name, None))
@@ -490,9 +506,11 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
 
             for t in range(header["tag_points"]):
                 tmp_vector = Vector( (frames[0]["tag_points"][t][xVal], frames[0]["tag_points"][t][yVal], frames[0]["tag_points"][t][zVal]) )
-                if bTransform:
-                    tmp_vector = transform_vector(tmp_vector, transformation_matrix)
-                add_point(tag_points[t].decode(), location=tmp_vector, collection=point_col, empty=empty)
+                if not bTransform:
+                    transformation_matrix = Matrix() # use identity matrix
+
+                add_point(tag_points[t].decode(), location=tmp_vector, trans_matrix=transformation_matrix, collection=point_col, empty=empty)
+                #add_point_cone(tag_points[t].decode(), location=tmp_vector, trans_matrix=transformation_matrix, collection=point_col, empty=empty)
 
 
         print(header)
