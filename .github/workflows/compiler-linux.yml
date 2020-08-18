@@ -47,4 +47,4 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: CEMtool-Blender
-        path: ./CEMtool-Blender_WiP14.zip
+        path: ./CEMtool-Blender_WiP15.zip
