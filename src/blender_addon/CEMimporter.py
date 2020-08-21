@@ -232,14 +232,14 @@ def transform_vector(vector: Vector, matrix: Matrix):
     kath_vec = Vector( (hom_vec[0] / hom_vec[3], hom_vec[1] / hom_vec[3], hom_vec[2] / hom_vec[3]) )
     return kath_vec
 
-# TODO: here is a problem, because in blender empty objects do *NOT* have an origin! (and I need to one not overwrite the world matrix)
+# here is a problem, because in blender empty objects do *NOT* have an origin! (and I need to one not overwrite the world matrix)
+# SOLVED: multiplying the inversed world matrix does provice the relative position to origin! (see CEMexporter)
 def add_point(point_name: str, location: Vector, trans_matrix: Matrix, collection: bpy.types.Collection, empty: list()):
     empty.append(bpy.data.objects.new(point_name, None))
     empty[-1].empty_display_size = empty_size
     empty[-1].empty_display_type = 'PLAIN_AXES'
     #empty[-1].matrix_world = trans_matrix
     empty[-1].location += transform_vector(vector=location, matrix=trans_matrix)
-    #empty[-1].matrix_world.translation += location # This does not work :(
 
     #bpy.context.collection.objects.link(empty[-1])
     collection.objects.link(empty[-1])
@@ -248,7 +248,7 @@ def add_point_cone(point_name: str, location: Vector, trans_matrix: Matrix, coll
     bpy.ops.mesh.primitive_cone_add(calc_uvs=False, vertices=5)
     empty.append(bpy.context.view_layer.objects.active)
     empty[-1].select_set(False)
-    empty[-1].name = point_name    
+    empty[-1].name = point_name
     empty[-1].matrix_world = trans_matrix
     empty[-1].location += location
 
@@ -331,9 +331,11 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
 
         header, indices, materials, tag_points, frames = parse_cem(cemobject)
 
-        # TODO: use function to clean this up!
-        mesh_col.append(bpy.data.collections.new("%i:%s" % (o+1, header["name"].decode())))
-        main_col.children.link(mesh_col[o])
+        # TODO: clean up
+        #mesh_col.append(bpy.data.collections.new("%i:%s" % (o+1, header["name"].decode())))
+        #main_col.children.link(mesh_col[o])
+
+        mesh_col.append(add_collection_child(name="%i:%s" % (o+1, header["name"].decode()), parent_collection=main_col))
 
         ### ADD bounding BOX from the current object
         center_bounding_box = Vector( header["center"] )
@@ -346,8 +348,8 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
             lower_bound_point = transform_vector(lower_bound_point, transformation_matrix)
             upper_bound_point = transform_vector(upper_bound_point, transformation_matrix)
 
-
         empty_cube = add_empty_cube("0:BOUNDING BOX:0", center_bounding_box, mesh_col[o], empty)
+
         #add_point("lower bound", lower_bound_point, mesh_col[o], empty)
         #add_point("upper bound", upper_bound_point, mesh_col[o], empty)
 
