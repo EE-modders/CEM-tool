@@ -24,13 +24,13 @@ from bpy_extras.io_utils import ImportHelper, path_reference_mode
 
 importlib.reload(CEMimporter)
 
-def import_cem(context, filepath: str, bTagPoints: bool, bCleanup: bool, bTransform: bool, lod_level: str):
+def import_cem(context, filepath: str, bTagPoints: bool, bCleanup: bool, bTransform: bool, lod_level: str, frame_num: str):
     print("starting import of %s" % filepath)
 
     if bCleanup:
         print("CLEANING UP")
         CEMi.cleanup()
-    return CEMi.main_function_import_file(filename=filepath, bTagPoints=bTagPoints, bTransform=bTransform, lod_lvl=int(lod_level) )
+    return CEMi.main_function_import_file(filename=filepath, bTagPoints=bTagPoints, bTransform=bTransform, lod_lvl=int(lod_level), frame_num=int(frame_num))
 
 def export_cem(context, filepath: str):
     print("starting export of %s" % filepath)
@@ -88,9 +88,28 @@ class ImportCEM(bpy.types.Operator, ImportHelper):
         default='0',
     )
 
+    frame_num: EnumProperty(
+        name="Number of frames",
+        description="select number of frames to be imported",
+        items=(
+            ('0', "all", "Import all frames"),
+            ('1', "1", "single Frame"),
+            ('2', "2", "2 Frames"),
+            ('3', "3", "3 Frames"),
+            ('4', "4", "4 Frames"),
+            ('5', "5", "5 Frames"),
+            ('6', "6", "6 Frames"),
+            ('7', "7", "7 Frames"),
+            ('8', "8", "8 Frames"),
+            ('9', "9", "9 Frames"),
+            ('10', "10", "10 Frames"),
+        ),
+        default='0',
+    )
+
     def execute(self, context):
         print(self.filepath, self.setting_cleanup, self.setting_tag_points, self.lod_lvl)
-        if import_cem(context, filepath=self.filepath, bCleanup=self.setting_cleanup, bTagPoints=self.setting_tag_points, bTransform=self.setting_matrix_transform, lod_level=self.lod_lvl):
+        if import_cem(context, filepath=self.filepath, bCleanup=self.setting_cleanup, bTagPoints=self.setting_tag_points, bTransform=self.setting_matrix_transform, lod_level=self.lod_lvl, frame_num=self.frame_num):
             return {'FINISHED'}
         else:
             return {'CANCELLED'}

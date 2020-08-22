@@ -11,7 +11,7 @@ import struct
 from io import BytesIO
 from math import radians
 from mathutils import Vector, Matrix
-
+from itertools import chain
 
 #############################
 # original code
@@ -257,10 +257,9 @@ def add_point_cone(point_name: str, location: Vector, trans_matrix: Matrix, coll
     collection.objects.link(empty[-1])
 
 
-def add_empty_cube(cube_name: str, location: Vector, collection: bpy.types.Collection, empty: list()):
+def add_empty_cube(cube_name: str, collection: bpy.types.Collection, empty: list()):
     empty.append(bpy.data.objects.new(cube_name, None))
     empty[-1].empty_display_type = 'CUBE'
-    empty[-1].location = location
 
     collection.objects.link(empty[-1])
     return empty[-1]
@@ -303,7 +302,7 @@ def redraw():
             area.tag_redraw()
 
 ### MAIN function
-def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool, lod_lvl: int):
+def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool, lod_lvl: int, frame_num: int):
     empty = list()
     edges = []
     mesh_col = list()
@@ -326,37 +325,56 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
 
 
     for o, cemobject in enumerate(CEM_PARTS):
-        vertices = list()
-        texture_uvs = list()
-
         header, indices, materials, tag_points, frames = parse_cem(cemobject)
 
-        # TODO: clean up
-        #mesh_col.append(bpy.data.collections.new("%i:%s" % (o+1, header["name"].decode())))
-        #main_col.children.link(mesh_col[o])
+        print(type(frames))
+
+        # if frame_num is 0 -> import all frames
+        if frame_num == 0:
+            frame_num = header["frames"]
+
+        # set timeline to number of available frames
+        # only set for the first object, it should be the same for all
+        if o == 0:
+            curr_scene = bpy.context.scene
+            curr_scene.frame_current = 1
+            curr_scene.frame_start = 1
+            curr_scene.frame_end = frame_num
+
+
+        # array of transformation matrixes to represent the animation
+        transformation_matrix = list()
+        for f in range(header["frames"]):
+            transformation_matrix.append( Matrix(frames[f]["transform_matrix"]) )
 
         mesh_col.append(add_collection_child(name="%i:%s" % (o+1, header["name"].decode()), parent_collection=main_col))
 
-        ### ADD bounding BOX from the current object
-        center_bounding_box = Vector( header["center"] )
-        transformation_matrix = Matrix(frames[0]["transform_matrix"])
-        lower_bound_point = Vector( frames[0]["lower_bound"] )
-        upper_bound_point = Vector( frames[0]["upper_bound"] )
+        for n in range(frame_num):
+            ### ADD bounding BOX from the current object
+            center_bounding_box = Vector( header["center"] )
+            #transformation_matrix = Matrix( frames[n]["transform_matrix"] )
+            lower_bound_point = Vector( frames[n]["lower_bound"] )
+            upper_bound_point = Vector( frames[n]["upper_bound"] )
 
-        if bTransform:
-            center_bounding_box = transform_vector(center_bounding_box, transformation_matrix)
-            lower_bound_point = transform_vector(lower_bound_point, transformation_matrix)
-            upper_bound_point = transform_vector(upper_bound_point, transformation_matrix)
+            if bTransform:
+                center_bounding_box = transform_vector(center_bounding_box, transformation_matrix[n])
+                lower_bound_point = transform_vector(lower_bound_point, transformation_matrix[n])
+                upper_bound_point = transform_vector(upper_bound_point, transformation_matrix[n])
 
-        empty_cube = add_empty_cube("0:BOUNDING BOX:0", center_bounding_box, mesh_col[o], empty)
+            if n == 0:
+                empty_cube = add_empty_cube("0:BOUNDING BOX:0", mesh_col[o], empty)
 
-        #add_point("lower bound", lower_bound_point, mesh_col[o], empty)
-        #add_point("upper bound", upper_bound_point, mesh_col[o], empty)
+            #add_point("lower bound", lower_bound_point, mesh_col[o], empty)
+            #add_point("upper bound", upper_bound_point, mesh_col[o], empty)
 
-        diffVec = (lower_bound_point - upper_bound_point) * 0.5
-        empty_cube.scale[xVal] = abs(diffVec[xVal])
-        empty_cube.scale[yVal] = abs(diffVec[yVal])
-        empty_cube.scale[zVal] = abs(diffVec[zVal])
+            empty_cube.location = center_bounding_box
+            empty_cube.keyframe_insert('location', frame=n+1)
+
+            diffVec = (lower_bound_point - upper_bound_point) * 0.5
+            empty_cube.scale[xVal] = abs(diffVec[xVal])
+            empty_cube.scale[yVal] = abs(diffVec[yVal])
+            empty_cube.scale[zVal] = abs(diffVec[zVal])
+            empty_cube.keyframe_insert('scale', frame=n+1)
 
 
         ####################################################### vertices get transformed by the matrix saved inside the file:
@@ -393,11 +411,6 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
         [0.0, 0.0, 0.0, 1.0]]
         """
 
-        for i in range(header["vertices"]):
-            vertex_tmp = Vector( (frames[0]["vertices"][i]["point"][xVal], frames[0]["vertices"][i]["point"][yVal], frames[0]["vertices"][i]["point"][zVal]) )
-            vertices.append(vertex_tmp)
-            texture_uvs.append( Vector( (frames[0]["vertices"][i]["texture"][xVal], 1-frames[0]["vertices"][i]["texture"][yVal]) ))
-
         for m in range(header["materials"]):
             faces = list()
             
@@ -407,112 +420,153 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
             
             for j in range(materials[m]["triangle_selections"][lod_lvl][1]): # Material length
                 index = j + materials[m]["triangle_selections"][lod_lvl][0] # Material offset
+
+                ## debugg stuff
                 #print("range %i" % (materials[m]["triangle_selections"][lod_lvl][1]))
                 #print("index: %i" % index)
                 #print("length: %i" % (len(indices[lod_lvl][1])))
                 #print(indices[lod_lvl][1][index][xVal])
                 #print(materials[m]["vertex_offset"])
+
                 x = indices[lod_lvl][1][index][xVal]
                 y = indices[lod_lvl][1][index][yVal]
                 z = indices[lod_lvl][1][index][zVal]
                 faces.append( [x, y, z] )
             
             mat_vertex_offset = materials[m]["vertex_offset"]
-            mar_vertex_count = materials[m]["vertex_count"]
+            mat_vertex_count = materials[m]["vertex_count"]
 
             main_mesh = bpy.data.meshes.new(name="%s" % materials[m]["texture_name"].decode())
-            main_mesh.from_pydata(vertices[mat_vertex_offset : mat_vertex_offset + mar_vertex_count], list(), faces)
-
-            ### add UV coords
             main_mesh.uv_layers.new(do_init=True)
-            for p, polygon in enumerate(main_mesh.polygons):
-                for i, index in enumerate(polygon.loop_indices):
-                    print("FACE:", faces[p][i])
-                    print("TEXTURE UV:", texture_uvs[faces[p][i]] )
-                    print("INDEX:", index)
-                    main_mesh.uv_layers[0].data[index].uv = texture_uvs[mat_vertex_offset : mat_vertex_offset + mar_vertex_count][faces[p][i]]
-            main_mesh.validate(verbose=True)
-            
-            plane_object = bpy.data.objects.new(plane_object_name, main_mesh)
-            if bTransform:
-                plane_object.matrix_world = transformation_matrix
 
-            #bpy.context.collection.objects.link(plane_object)
+            for n in range(frame_num):
+                vertices = list()
+                texture_uvs = list()
+                
+                for i in range(header["vertices"]):
+                    vertex_tmp = Vector( (frames[n]["vertices"][i]["point"][xVal], frames[n]["vertices"][i]["point"][yVal], frames[n]["vertices"][i]["point"][zVal]) )            
+                    vertices.append(vertex_tmp)    
+                    texture_uvs.append( Vector( (frames[n]["vertices"][i]["texture"][xVal], 1-frames[n]["vertices"][i]["texture"][yVal]) ))
+                
+                v_tmp = vertices[mat_vertex_offset : mat_vertex_offset + mat_vertex_count]
 
-            mesh_col[o].objects.link(plane_object)
+                if n == 0:
+                    main_mesh.from_pydata(v_tmp, list(), faces)
+                    main_mesh.validate(verbose=True)
 
-            if materials[m]["material_name"] == b'player color':
-                ########### set player color to blue for viewport
+                    ### add UV coords
+                    for p, polygon in enumerate(main_mesh.polygons):
+                        for i, index in enumerate(polygon.loop_indices):
 
-                mat_name = "player color"
-                blue_rgba_color = [0.1, 0.1, 1, 1]
-                red_rgba_color = [1, 0, 0, 1]
+                            #print("FACE:", faces[p][i])
+                            #print("TEXTURE UV:", texture_uvs[faces[p][i]] )
+                            #print("INDEX:", index)
 
-                pl_color_index = bpy.data.materials.find(mat_name)
-                if pl_color_index is -1:
-                    player_color_mat = bpy.data.materials.new(mat_name)
+                            main_mesh.uv_layers[0].data[index].uv = texture_uvs[mat_vertex_offset : mat_vertex_offset + mat_vertex_count][faces[p][i]]
+
+                    plane_object = bpy.data.objects.new(plane_object_name, main_mesh)
                 else:
-                    player_color_mat = bpy.data.materials[pl_color_index]
+                    plane_object.data.vertices.foreach_set('co', tuple(chain.from_iterable(v_tmp)))
+                    #for i, v in enumerate(plane_object.data.vertices):
+                    #    v.co = v_tmp[i]
 
-                player_color_mat.diffuse_color = blue_rgba_color
-                player_color_mat.roughness = 1
-                player_color_mat.metallic = 0
+                if bTransform:
+                    plane_object.matrix_world = transformation_matrix[n]
 
-                if plane_object.data.materials:
-                    plane_object.data.materials[0] = player_color_mat
-                else:
-                    plane_object.data.materials.append(player_color_mat)
-            else:
-                ########## add material to main_object
-                if plane_object.data.materials:
-                    #plane_object.data.materials[0] = bpy.data.materials[0]
-                    None
-                else:
-                    if bpy.data.materials:
-                        plane_object.data.materials.append(bpy.data.materials[0])
+                # create keyframe for animation (all vertices, all UVs and the postition of the object itself)
+                for vertex in plane_object.data.vertices:
+                    vertex.keyframe_insert('co', frame=n+1)
+                for uv in plane_object.data.uv_layers[0].data:
+                    uv.keyframe_insert('uv', frame=n+1)                
+                for pos in {'location', 'rotation_euler', 'scale'}:
+                    plane_object.keyframe_insert(pos, frame=n+1)
+
+
+                # Add vieport material to player color, so that it appears blue
+                if n == 0:
+                    #bpy.context.collection.objects.link(plane_object)
+                    mesh_col[o].objects.link(plane_object)
+
+                    if materials[m]["material_name"] == b'player color':
+                        ########### set player color to blue for viewport
+
+                        mat_name = "player color"
+                        blue_rgba_color = [0.1, 0.1, 1, 1]
+                        red_rgba_color = [1, 0, 0, 1]
+
+                        pl_color_index = bpy.data.materials.find(mat_name)
+                        if pl_color_index is -1:
+                            player_color_mat = bpy.data.materials.new(mat_name)
+                        else:
+                            player_color_mat = bpy.data.materials[pl_color_index]
+
+                        player_color_mat.diffuse_color = blue_rgba_color
+                        player_color_mat.roughness = 1
+                        player_color_mat.metallic = 0
+
+                        if plane_object.data.materials:
+                            plane_object.data.materials[0] = player_color_mat
+                        else:
+                            plane_object.data.materials.append(player_color_mat)
                     else:
-                        plane_object.data.materials.append(bpy.data.materials.new("CEM Default"))
+                        ########## add material to main_object
+                        if plane_object.data.materials:
+                            #plane_object.data.materials[0] = bpy.data.materials[0]
+                            None
+                        else:
+                            if bpy.data.materials:
+                                plane_object.data.materials.append(bpy.data.materials[0])
+                            else:
+                                plane_object.data.materials.append(bpy.data.materials.new("CEM Default"))
 
-            ########### add player color mesh
-            #faces_color = list()
-            #m = 1
-            #plane_object_name = "material %i" % (m+1)
-            #if materials[m]["material_name"] is not b'':
-            #    plane_object_name = "%s" % (materials[m]["material_name"])
-            #
-            #for j in range(materials[m]["triangle_selections"][lod_lvl][1]): # Material length
-            #    index = j + materials[m]["triangle_selections"][lod_lvl][0] # Material offset    
-            #    x = indices[lod_lvl][1][index][xVal] + materials[m]["vertex_offset"]
-            #    y = indices[lod_lvl][1][index][yVal] + materials[m]["vertex_offset"]
-            #    z = indices[lod_lvl][1][index][zVal] + materials[m]["vertex_offset"]
-            #    faces_color.append( [x, y, z] )
-            #pl_color_mesh = bpy.data.meshes.new(name="mesh_%s" % plane_object_name)
-            #pl_color_mesh.from_pydata(vertices, list(), faces_color)
-            ### add UV coords
-            #pl_color_mesh.uv_layers.new(do_init=True)
-            #for p, polygon in enumerate(pl_color_mesh.polygons):
-            #    for i, index in enumerate(polygon.loop_indices):
-            #        #print("FACE:", faces_color[p][i])
-            #        #print("TEXTURE UV:", texture_uvs[faces_color[p][i]] )
-            #        pl_color_mesh.uv_layers[0].data[index].uv = texture_uvs[faces_color[p][i]]
-            #pl_color_mesh.validate(verbose=True)
-            #pl_color_object = bpy.data.objects.new("player color", pl_color_mesh)
-            ##bpy.context.collection.objects.link(pl_color_object)
-            #mesh_col.objects.link(pl_color_object)
+        ########### add player color mesh
+        #faces_color = list()
+        #m = 1
+        #plane_object_name = "material %i" % (m+1)
+        #if materials[m]["material_name"] is not b'':
+        #    plane_object_name = "%s" % (materials[m]["material_name"])
+        #
+        #for j in range(materials[m]["triangle_selections"][lod_lvl][1]): # Material length
+        #    index = j + materials[m]["triangle_selections"][lod_lvl][0] # Material offset    
+        #    x = indices[lod_lvl][1][index][xVal] + materials[m]["vertex_offset"]
+        #    y = indices[lod_lvl][1][index][yVal] + materials[m]["vertex_offset"]
+        #    z = indices[lod_lvl][1][index][zVal] + materials[m]["vertex_offset"]
+        #    faces_color.append( [x, y, z] )
+        #pl_color_mesh = bpy.data.meshes.new(name="mesh_%s" % plane_object_name)
+        #pl_color_mesh.from_pydata(vertices, list(), faces_color)
+        ### add UV coords
+        #pl_color_mesh.uv_layers.new(do_init=True)
+        #for p, polygon in enumerate(pl_color_mesh.polygons):
+        #    for i, index in enumerate(polygon.loop_indices):
+        #        #print("FACE:", faces_color[p][i])
+        #        #print("TEXTURE UV:", texture_uvs[faces_color[p][i]] )
+        #        pl_color_mesh.uv_layers[0].data[index].uv = texture_uvs[faces_color[p][i]]
+        #pl_color_mesh.validate(verbose=True)
+        #pl_color_object = bpy.data.objects.new("player color", pl_color_mesh)
+        ##bpy.context.collection.objects.link(pl_color_object)
+        #mesh_col.objects.link(pl_color_object)
 
 
         ########## add tag points
         if bTagPoints:            
             point_col = bpy.data.collections.new("tag points")
             mesh_col[o].children.link(point_col)
-
+            
             for t in range(header["tag_points"]):
-                tmp_vector = Vector( (frames[0]["tag_points"][t][xVal], frames[0]["tag_points"][t][yVal], frames[0]["tag_points"][t][zVal]) )
-                if not bTransform:
-                    transformation_matrix = Matrix() # use identity matrix
+                for n in range(frame_num):
+                    tmp_vector = Vector( (frames[n]["tag_points"][t][xVal], frames[n]["tag_points"][t][yVal], frames[n]["tag_points"][t][zVal]) )
+                    if bTransform:
+                        tmp_trans_matrix = transformation_matrix[n]
+                    else:
+                        tmp_trans_matrix = Matrix() # use identity matrix
 
-                add_point(tag_points[t].decode(), location=tmp_vector, trans_matrix=transformation_matrix, collection=point_col, empty=empty)
-                #add_point_cone(tag_points[t].decode(), location=tmp_vector, trans_matrix=transformation_matrix, collection=point_col, empty=empty)
+                    if n == 0:
+                        add_point(point_name=tag_points[t].decode(), location=tmp_vector, trans_matrix=tmp_trans_matrix, collection=point_col, empty=empty)                        
+                        #add_point_cone(tag_points[t].decode(), location=tmp_vector, trans_matrix=transformation_matrix, collection=point_col, empty=empty)
+                    else:
+                        empty[-1].location = transform_vector(vector=tmp_vector, matrix=tmp_trans_matrix)
+
+                    empty[-1].keyframe_insert('location', frame=n+1)
 
 
         print(header)
