@@ -25,7 +25,7 @@ from bpy_extras.io_utils import ImportHelper, path_reference_mode
 importlib.reload(CEMimporter)
 
 def import_cem(context, filepath: str, bTagPoints: bool, bCleanup: bool, bTransform: bool, lod_level: str, frame_num: str):
-    print("starting import of %s" % filepath)
+    print("starting import of", filepath)
 
     if bCleanup:
         print("CLEANING UP")
@@ -33,7 +33,7 @@ def import_cem(context, filepath: str, bTagPoints: bool, bCleanup: bool, bTransf
     return CEMi.main_function_import_file(filename=filepath, bTagPoints=bTagPoints, bTransform=bTransform, lod_lvl=int(lod_level), frame_num=int(frame_num))
 
 def export_cem(context, filepath: str):
-    print("starting export of %s" % filepath)
+    print("starting export of", filepath)
 
     return CEMex.main_function_export_file(filename=filepath)
 

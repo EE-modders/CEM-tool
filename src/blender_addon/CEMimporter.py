@@ -318,7 +318,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
     print(filename)
     CEM_PARTS = get_CEM_parts(CEM)
 
-    print("LOD LEVEL: %s" % lod_lvl)
+    print("LOD LEVEL:", lod_lvl)
 
     main_col_name = filename.split(os_delimiter)[-1]
     main_col = add_collection("M:%s.LOD %i" % (main_col_name, lod_lvl))

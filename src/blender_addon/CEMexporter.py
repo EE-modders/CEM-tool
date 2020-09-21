@@ -158,7 +158,7 @@ def generate_header_info(mesh_col: bpy.types.Collection):
     return nVerts, nFaces, nMaterials, bbox_points # bbox_center, bbox_scale
 
 def get_vertex_data(blobject: bpy.types.Object):
-    '''returns all vertices, normals, uvs, vertex_indices and the number of vertices of the blender object'''
+    """returns all vertices, normals, uvs, vertex_indices and the number of vertices of the blender object"""
     vertices = [ v.co for v in blobject.data.vertices ]
     normals = [ v.normal for v in blobject.data.vertices ]
 
