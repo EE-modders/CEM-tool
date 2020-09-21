@@ -24,6 +24,6 @@ Note: I haven't used more than 10 of impact tag points
 
 - light_0_128_0_500_500_0
 - light_128_0_0_500_500_0
-- light_128_0_0_500_1000_0.001
 - light_128_0_0_500_1000_0
-- light_128_128_128_500_500_0
+- light_128_0_0_500_1000_0
+- light_128_128_128_500_500_0
