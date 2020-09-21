@@ -210,6 +210,7 @@ def main_function_export_file(filename: str):
         mesh_col0 = main_col.children[0]
     except IndexError:
         ShowMessageBox(title="export error", message="no valid CEM structure found!", icon='ERROR')
+        #bpy.ops.ui.error_message()
         return False
 
     for i, mesh_col in enumerate(main_col.children):

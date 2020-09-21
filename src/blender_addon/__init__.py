@@ -179,6 +179,16 @@ class PrepareCemOperator(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class ErrorMessage(bpy.types.Operator):
+    bl_idname = 'ui.error_message'
+    bl_label = "Test error"
+    bl_description = "Some useless text"
+
+    def execute(self, context):
+        self.report({'INFO'}, message="ERROR: SOME STUPID  MESSAGE")
+        return {'CANCELLED'}
+
+
 # Only needed if you want to add into a dynamic menu
 def menu_func_import(self, context):
     self.layout.operator(ImportCEM.bl_idname, text="Empire Earth (.cem)")
@@ -193,12 +203,16 @@ def register():
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
+    bpy.utils.register_class(ErrorMessage)
+
 def unregister():
     bpy.utils.unregister_class(ImportCEM)
     bpy.utils.unregister_class(ExportCEM)
     bpy.utils.unregister_class(PrepareCemOperator)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
+
+    bpy.utils.unregister_class(ErrorMessage)
 
 
 if __name__ == "__main__":
