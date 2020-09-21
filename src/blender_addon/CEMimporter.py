@@ -337,9 +337,9 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
         # only set for the first object, it should be the same for all
         if o == 0:
             curr_scene = bpy.context.scene
-            curr_scene.frame_current = 1
-            curr_scene.frame_start = 1
-            curr_scene.frame_end = frame_num
+            curr_scene.frame_current = 0
+            curr_scene.frame_start = 0
+            curr_scene.frame_end =  curr_scene.frame_start + frame_num - 1
 
 
         # array of transformation matrixes to represent the animation
@@ -368,13 +368,13 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
             #add_point("upper bound", upper_bound_point, mesh_col[o], empty)
 
             empty_cube.location = center_bounding_box
-            empty_cube.keyframe_insert('location', frame=n+1)
+            empty_cube.keyframe_insert('location', frame=n)
 
             diffVec = (lower_bound_point - upper_bound_point) * 0.5
             empty_cube.scale[xVal] = abs(diffVec[xVal])
             empty_cube.scale[yVal] = abs(diffVec[yVal])
             empty_cube.scale[zVal] = abs(diffVec[zVal])
-            empty_cube.keyframe_insert('scale', frame=n+1)
+            empty_cube.keyframe_insert('scale', frame=n)
 
 
         ####################################################### vertices get transformed by the matrix saved inside the file:
@@ -475,11 +475,11 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
 
                 # create keyframe for animation (all vertices, all UVs and the postition of the object itself)
                 for vertex in plane_object.data.vertices:
-                    vertex.keyframe_insert('co', frame=n+1)
+                    vertex.keyframe_insert('co', frame=n)
                 for uv in plane_object.data.uv_layers[0].data:
-                    uv.keyframe_insert('uv', frame=n+1)                
-                for pos in {'location', 'rotation_euler', 'scale'}:
-                    plane_object.keyframe_insert(pos, frame=n+1)
+                    uv.keyframe_insert('uv', frame=n)                
+                for pos in ['location', 'rotation_euler', 'scale']:
+                    plane_object.keyframe_insert(pos, frame=n)
 
 
                 # Add vieport material to player color, so that it appears blue
@@ -566,7 +566,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
                     else:
                         empty[-1].location = transform_vector(vector=tmp_vector, matrix=tmp_trans_matrix)
 
-                    empty[-1].keyframe_insert('location', frame=n+1)
+                    empty[-1].keyframe_insert('location', frame=n)
 
 
         print(header)
