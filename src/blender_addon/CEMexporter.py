@@ -150,7 +150,7 @@ def generate_header_info(mesh_col: bpy.types.Collection):
             nMaterials += 1
             bbox_points += obj.bound_box
         except AttributeError: # Bounding Box doesn't have vertices attribute
-            if "BOUNDING BOX" in obj.name:            
+            if "BOUNDING BOX" in obj.name:
                 None ## ignore
                 #bbox_center = obj.location
                 #bbox_scale = obj.scale
@@ -207,7 +207,7 @@ def main_function_export_file(filename: str):
     #i = 0 # this is only temporary, because for now child models are not getting exported (otherwise the code below would be bullshit I know)
 
     try:
-        mesh_col0 = main_col.children[0]
+        main_col.children[0]
     except IndexError:
         ShowMessageBox(title="export error", message="no valid CEM structure found!", icon='ERROR')
         #bpy.ops.ui.error_message()
