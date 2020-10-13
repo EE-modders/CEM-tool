@@ -178,8 +178,16 @@ def get_vertex_data(blobject: bpy.types.Object):
     return vertices, normals, uvs, indices, num_vertices
 
 def get_bounds(bounding_box: list):
-    maxV = Vector( max(bounding_box, key=sum) )
-    minV = Vector( min(bounding_box, key=sum) )
+    # I need to get the highest / lowest value of each axis - sum does not work properly e.g. for planes
+    allX = [ x[xVal] for x in bounding_box ]
+    allY = [ x[yVal] for x in bounding_box ]
+    allZ = [ x[zVal] for x in bounding_box ]
+
+    maxV = Vector( (max(allX),max(allY),max(allZ)) )
+    minV = Vector( (min(allX),min(allY),min(allZ)) )
+
+    #maxV = Vector( max(bounding_box, key=sum) )
+    #minV = Vector( min(bounding_box, key=sum) )
 
     centerP = (maxV - minV) * 0.5 + minV
 
