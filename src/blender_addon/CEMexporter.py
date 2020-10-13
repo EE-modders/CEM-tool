@@ -268,46 +268,50 @@ def main_function_export_file(filename: str):
         "texture_name"              # string
         ]
 
-        for curr_object in mesh_col.objects:
-            matID, matName, matTextureindex = curr_object.name.split(':')
-            matTextureindex = matTextureindex.split('.')[0]
-            if matName == "BOUNDING BOX":
-                continue
+        # since Blender likes to shuffle the order around, I need to search for the right object in order to keep the right order
+        for i, _ in enumerate(mesh_col.objects):
+            for curr_object in mesh_col.objects:
+                # check if Blender index matches the index in the object name
+                if not curr_object.name.startswith(f"{i+1}:"): continue
 
-            materials.append(dict.fromkeys(material_template, 0))
-            if curr_object.mode == 'EDIT':
-                ShowMessageBox(title="export error", message="please disable edit mode!", icon='ERROR') # export will fail when in edit mode
-                return False
-            #bpy.ops.object.editmode_toggle() # this doesn't work for some reason, so user has to do it
-            try:
-                bpy.ops.object.select_all(action='DESELECT') # deselect all objects - creates error, when edit mode is enabled
-            except RuntimeError:
-                ShowMessageBox(title="export error", message="ERROR: do you have edit mode enabled??", icon='ERROR') # export will fail when in edit mode
-                return False
+                matID, matName, matTextureindex = curr_object.name.split(':')
+                matTextureindex = matTextureindex.split('.')[0]
+                if matName == "BOUNDING BOX": continue
 
-            if not check_transforms(curr_object): # check if transforms are correctly applied - show warning if not, but export anyway
-                ShowMessageBox(title="export warning", message="Pls check your rotation, scaling and location settings, it might look wrong in the game!", icon='INFO')        
-            vt, nt, uvt, indt, num_vertices = get_vertex_data(curr_object) # get_vertex_data returns vertices, normals, uvs, indices, num_vertices
+                materials.append(dict.fromkeys(material_template, 0))
+                if curr_object.mode == 'EDIT':
+                    ShowMessageBox(title="export error", message="please disable edit mode!", icon='ERROR') # export will fail when in edit mode
+                    return False
+                #bpy.ops.object.editmode_toggle() # this doesn't work for some reason, so user has to do it
+                try:
+                    bpy.ops.object.select_all(action='DESELECT') # deselect all objects - creates error, when edit mode is enabled
+                except RuntimeError:
+                    ShowMessageBox(title="export error", message="ERROR: do you have edit mode enabled??", icon='ERROR') # export will fail when in edit mode
+                    return False
 
-            materials[-1]["material_name_length"] = len(matName)+1
-            materials[-1]["material_name"] = matName.encode()
-            materials[-1]["texture_index"] = int(matTextureindex)
+                if not check_transforms(curr_object): # check if transforms are correctly applied - show warning if not, but export anyway
+                    ShowMessageBox(title="export warning", message="Pls check your rotation, scaling and location settings, it might look wrong in the game!", icon='INFO')        
+                vt, nt, uvt, indt, num_vertices = get_vertex_data(curr_object) # get_vertex_data returns vertices, normals, uvs, indices, num_vertices
 
-            materials[-1]["triangle_selections"] = [ (mat_triangle_sel, len(indt)) ]
-            mat_triangle_sel += len(indt)
+                materials[-1]["material_name_length"] = len(matName)+1
+                materials[-1]["material_name"] = matName.encode()
+                materials[-1]["texture_index"] = int(matTextureindex)
 
-            materials[-1]["vertex_offset"] = len(vertices)
-            materials[-1]["vertex_count"] = num_vertices
+                materials[-1]["triangle_selections"] = [ (mat_triangle_sel, len(indt)) ]
+                mat_triangle_sel += len(indt)
 
-            matTextureName = curr_object.data.name.split('.')[0] # cutoff potential ".00x" from the name, which blender adds
-            materials[-1]["texture_name_length"] = len(matTextureName)+1
-            materials[-1]["texture_name"] = matTextureName.encode()
+                materials[-1]["vertex_offset"] = len(vertices)
+                materials[-1]["vertex_count"] = num_vertices
 
-            vertices += vt
-            normals += nt
-            texture_uvs += uvt
-            indices_only += indt
-            transformation_matrix = curr_object.matrix_world
+                matTextureName = curr_object.data.name.split('.')[0] # cutoff potential ".00x" from the name, which blender adds
+                materials[-1]["texture_name_length"] = len(matTextureName)+1
+                materials[-1]["texture_name"] = matTextureName.encode()
+
+                vertices += vt
+                normals += nt
+                texture_uvs += uvt
+                indices_only += indt
+                transformation_matrix = curr_object.matrix_world
 
         ### indices
         indices[lod_level][0] = len(indices_only)
