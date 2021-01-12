@@ -302,7 +302,7 @@ def redraw():
             area.tag_redraw()
 
 ### MAIN function
-def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool, lod_lvl: int, frame_num: int):
+def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool, bValidate: bool, lod_lvl: int, frame_num: int):
     empty = list()
     edges = []
     mesh_col = list()
@@ -455,7 +455,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
 
                 if n == 0:
                     main_mesh.from_pydata(v_tmp, list(), faces)
-                    main_mesh.validate(verbose=True)
+                    if bValidate: main_mesh.validate(verbose=True)
 
                     ### add UV coords
                     for p, polygon in enumerate(main_mesh.polygons):

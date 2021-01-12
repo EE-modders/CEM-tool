@@ -3,7 +3,7 @@ bl_info = {
     "author" : "zocker_160",
     "description" : "addon for importing and exporting Empire Earth CEM files",
     "blender" : (2, 90, 1),
-    "version" : (0, 21),
+    "version" : (0, 22),
     "location" : "File > Import",
     "warning" : "only import of CEM v2 files is supported (for now) the export is still WiP!",
     "category" : "Import-Export",
@@ -24,13 +24,13 @@ from bpy_extras.io_utils import ImportHelper, path_reference_mode
 
 importlib.reload(CEMimporter)
 
-def import_cem(context, filepath: str, bTagPoints: bool, bCleanup: bool, bTransform: bool, lod_level: str, frame_num: str):
+def import_cem(context, filepath: str, bTagPoints: bool, bCleanup: bool, bTransform: bool, bValidate: bool, lod_level: str, frame_num: str):
     print("starting import of", filepath)
 
     if bCleanup:
         print("CLEANING UP")
         CEMi.cleanup()
-    return CEMi.main_function_import_file(filename=filepath, bTagPoints=bTagPoints, bTransform=bTransform, lod_lvl=int(lod_level), frame_num=int(frame_num))
+    return CEMi.main_function_import_file(filename=filepath, bTagPoints=bTagPoints, bTransform=bTransform, bValidate=bValidate, lod_lvl=int(lod_level), frame_num=int(frame_num))
 
 def export_cem(context, filepath: str):
     print("starting export of", filepath)
@@ -61,6 +61,11 @@ class ImportCEM(bpy.types.Operator, ImportHelper):
     setting_tag_points: BoolProperty(
         name="import Tag Points",
         description="imports all Tag Points stored in the CEM file",
+        default=True,
+    )
+    setting_validate: BoolProperty(
+        name="validate vertex",
+        description="lets Blender validate the imported vertex (disabling can fix broken imports)",
         default=True,
     )
 
@@ -109,7 +114,16 @@ class ImportCEM(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         print(self.filepath, self.setting_cleanup, self.setting_tag_points, self.lod_lvl)
-        if import_cem(context, filepath=self.filepath, bCleanup=self.setting_cleanup, bTagPoints=self.setting_tag_points, bTransform=self.setting_matrix_transform, lod_level=self.lod_lvl, frame_num=self.frame_num):
+        if import_cem(
+            context,
+            filepath=self.filepath,
+            bCleanup=self.setting_cleanup,
+            bTagPoints=self.setting_tag_points,
+            bTransform=self.setting_matrix_transform,
+            bValidate=self.setting_validate,
+            lod_level=self.lod_lvl, 
+            frame_num=self.frame_num
+            ):
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
