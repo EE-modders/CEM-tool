@@ -1,0 +1,72 @@
+Molly Ryan (futureheroone_13)
+
+walking 1 - 16
+idle 17 - 31
+attack 32 - 43
+dying 44 - 62
+
+72: 1 (enabled)
+73: 31 (start attack)
+74: 42 (end attack)
+75: 150 (speed ?)
+76: 1
+77: 50000
+78: 37
+79: 0
+80: attack sound
+81: attack sound 2
+82: 256 (0/256/257)
+
+83: 0 (disabled)
+84: 15
+85: 53
+86: 1
+87: 0
+88: 0
+89: 0
+90: sound 1
+91: sound 2
+
+92: 1 (enabled)
+93: 16 (start idle)
+94: 30 (end idle)
+95: 141 (speed ?)
+96: 1
+97: 6000 (sound volume ?)
+98: 0
+99: 0
+100: sound 1
+101: sound 2
+
+102: 0 (0/256)
+103: 16 (start idle)
+104: 30 (end idle)
+105: 150
+106: 1
+107: 5000
+108: 0
+109: 0
+110: sound 1
+111: sound 2
+
+112: 256 (0/256)
+113: 43 (start dying)
+114: 61 (end dying)
+115: 105
+116: 0
+117: 0
+
+118: 256
+119: 61
+120: 61
+
+134: 256
+135: 16 (start idle)
+136: 30 (end idle)
+137: 141
+138: 1
+139: 3000
+140: 16
+141: 0
+142: battlecry sound
+143: sound 2

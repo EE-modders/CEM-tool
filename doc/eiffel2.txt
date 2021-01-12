@@ -1,0 +1,66 @@
+-1
+parsing..........
+
+This is a (valid) CEM file
+
+cem_version 2
+faces 474
+vertices 1182
+tag_points 14
+materials 3
+frames 1
+child_models 0
+lod_levels 1
+name_length 11
+name b'Scene Root'
+center (0.005222916603088379, -0.008749902248382568, 0.9872931241989136)
+
+########## Header length: 63 bytes
+
+LOD level 1
+faces: 474
+
+########## Indices length: 5692 bytes
+########## Total length up until here: 5755 bytes
+
+material_name_length 13
+material_name b'player color'
+texture_index 0
+triangle_selections [(0, 107)]
+vertex_offset 0
+vertex_count 319
+texture_name_length 19
+texture_name b'Eiffel Tower Parts'
+
+########## Material1 length: 60 bytes
+
+material_name_length 5
+material_name b'main'
+texture_index 1
+triangle_selections [(107, 135)]
+vertex_offset 319
+vertex_count 379
+texture_name_length 20
+texture_name b'Eiffel Tower Parts3'
+
+########## Material2 length: 53 bytes
+
+material_name_length 5
+material_name b'none'
+texture_index 2
+triangle_selections [(135, 232)]
+vertex_offset 698
+vertex_count 484
+texture_name_length 7
+texture_name b'Rails1'
+
+########## Material3 length: 40 bytes
+
+[b'2dexplosion_1', b'2dfire_02', b'2dfire_1', b'attack', b'impact_02', b'impact_03', b'impact_04', b'impact_05', b'impact_06', b'impact_07', b'impact_08', b'impact_09', b'impact_1', b'light_255_255_255_1000_0_0']
+
+########## Tag points length: 212 bytes
+[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
+########################
+[b'2dexplosion_1', b'2dfire_02', b'2dfire_1', b'attack', b'impact_02', b'impact_03', b'impact_04', b'impact_05', b'impact_06', b'impact_07', b'impact_08', b'impact_09', b'impact_1', b'light_255_255_255_1000_0_0']
+
+press Enter to close..........

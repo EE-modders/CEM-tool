@@ -1,0 +1,84 @@
+-1
+parsing..........
+
+This is a (valid) CEM file
+
+cem_version 2
+faces 474
+vertices 1182
+tag_points 14
+materials 3
+frames 1
+child_models 0
+lod_levels 10
+name_length 11
+name b'Scene Root'
+center (0.005222901701927185, -0.00865192711353302, 0.9624453186988831)
+
+########## Header length: 63 bytes
+
+LOD level 1
+faces: 474
+LOD level 2
+faces: 426
+LOD level 3
+faces: 378
+LOD level 4
+faces: 330
+LOD level 5
+faces: 284
+LOD level 6
+faces: 236
+LOD level 7
+faces: 188
+LOD level 8
+faces: 142
+LOD level 9
+faces: 94
+LOD level 10
+faces: 47
+
+########## Indices length: 31228 bytes
+########## Total length up until here: 31291 bytes
+
+material_name_length 13
+material_name b'player color'
+texture_index 0
+triangle_selections [(0, 107), (0, 107), (0, 107), (0, 77), (0, 59), (0, 26), (0, 11), (0, 5), (0, 1), (0, 1)]
+vertex_offset 0
+vertex_count 319
+texture_name_length 19
+texture_name b'Eiffel Tower Parts'
+
+########## Material1 length: 132 bytes
+
+material_name_length 1
+material_name b''
+texture_index 1
+triangle_selections [(107, 135), (107, 135), (107, 99), (77, 81), (59, 53), (26, 40), (11, 29), (5, 29), (1, 15), (1, 7)]
+vertex_offset 319
+vertex_count 379
+texture_name_length 20
+texture_name b'Eiffel Tower Parts3'
+
+########## Material2 length: 121 bytes
+
+material_name_length 1
+material_name b''
+texture_index 2
+triangle_selections [(242, 232), (242, 184), (206, 172), (158, 172), (112, 172), (66, 170), (40, 148), (34, 108), (16, 78), (8, 39)]
+vertex_offset 698
+vertex_count 484
+texture_name_length 7
+texture_name b'Rails1'
+
+########## Material3 length: 108 bytes
+
+[b'2dexplosion_1', b'2dfire_02', b'2dfire_1', b'attack', b'impact_02', b'impact_03', b'impact_04', b'impact_05', b'impact_06', b'impact_07', b'impact_08', b'impact_09', b'impact_1', b'light_255_255_255_1000_0_0']
+
+########## Tag points length: 212 bytes
+[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
+########################
+[b'2dexplosion_1', b'2dfire_02', b'2dfire_1', b'attack', b'impact_02', b'impact_03', b'impact_04', b'impact_05', b'impact_06', b'impact_07', b'impact_08', b'impact_09', b'impact_1', b'light_255_255_255_1000_0_0']
+
+press Enter to close..........
