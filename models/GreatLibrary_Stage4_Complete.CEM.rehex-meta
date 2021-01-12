@@ -1,0 +1,32 @@
+{
+  "comments": [
+    {
+      "offset": 0,
+      "length": 0,
+      "text": "magic"
+    },
+    {
+      "offset": 4,
+      "length": 0,
+      "text": "cem version"
+    },
+    {
+      "offset": 8,
+      "length": 0,
+      "text": "faces"
+    },
+    {
+      "offset": 12,
+      "length": 0,
+      "text": "vertices"
+    }
+  ],
+  "highlights": [],
+  "data_types": [
+    {
+      "offset": 4,
+      "length": 36,
+      "type": "u32le"
+    }
+  ]
+}
