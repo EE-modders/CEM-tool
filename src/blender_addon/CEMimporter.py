@@ -455,6 +455,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
 
                 if n == 0:
                     main_mesh.from_pydata(v_tmp, list(), faces)
+                    main_mesh.update()
                     if bValidate: main_mesh.validate(verbose=True)
 
                     ### add UV coords
