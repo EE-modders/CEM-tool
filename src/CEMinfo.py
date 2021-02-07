@@ -244,4 +244,6 @@ CEM_parts = get_CEM_parts(CEM)
 
 header, indices, materials, tag_points, frames = parse_file(CEM_parts[0])
 
+print(frames[0]['tag_points'][0])
+
 show_exit()
