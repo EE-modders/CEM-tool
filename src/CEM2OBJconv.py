@@ -328,7 +328,7 @@ if num_frames > 1:
 else:
     ret = "n"
 
-if ret is not "y":
+if ret != "y":
     write_obj(filename.split('.')[0], header, indices, materials, tag_points, frames, frame=0)
 else:
     for frame in range(num_frames):
