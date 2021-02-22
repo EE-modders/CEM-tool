@@ -5,7 +5,7 @@ bl_info = {
     "blender" : (2, 91, 2),
     "version" : (0, 23),
     "location" : "File > Import",
-    "warning" : "only import of CEM v2 files is supported (for now) the export is still WiP!",
+    "warning" : "This addon is still WiP and will contain bugs!",
     "category" : "Import-Export",
     "tracker_url": "https://github.com/EE-modders/CEM-tool/issues"
 }
