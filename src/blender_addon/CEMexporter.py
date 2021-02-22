@@ -359,7 +359,11 @@ def main_function_export_file(filename: str):
     if not filename.endswith(".cem"):
         filename += ".cem"
     
-    with open(filename, "wb") as f:
-        f.write(CEM)
-
+    try:
+        with open(filename, "wb") as f:
+            f.write(CEM)
+    except PermissionError as e:
+        ShowMessageBox(title="export error", message="Export failed: Permission denied!", icon='ERROR')
+        return False
+        
     return True
