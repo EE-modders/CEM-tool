@@ -85,16 +85,19 @@ def parse_cem(cem_bytes: bytes):
     # lambdas in order to improve readability
     read_float_buff = lambda: struct.unpack("<f", cemfile.read(4))[0]
     read_uint32_buff = lambda: struct.unpack("<I", cemfile.read(4))[0]
+    read_uint16_buff = lambda: struct.unpack("<H", cemfile.read(2))[0]
 
     read_int_buff = lambda x: int.from_bytes(cemfile.read(x), byteorder="little", signed=False)
 
-    header_template = [ "cem_version", "faces", "vertices", "tag_points", "materials", "frames", "child_models", "lod_levels", "name_length" ]
+    header_template = ["cem_version", "faces", "vertices", "tag_points", "materials", "frames", "child_models", "lod_levels", "name_length"]
 
-    values = struct.unpack("<9I", cemfile.read(36)) # 9 * 4 bytes = 36
+    cem_version = read_uint16_buff() + (read_uint16_buff() / 10)
+
+    values = struct.unpack("<8I", cemfile.read(32)) # 8 * 4 bytes = 32
+    values = (cem_version,) + values
     header = dict(zip(header_template, values))
 
     header["name"] = cemfile.read(header["name_length"])[:-1] # [:-1] removes the last byte which is a delimiter (0x00) in this case
-
     header["center"] = struct.unpack("<fff", cemfile.read(12))
 
     for key, value in header.items():
@@ -102,8 +105,8 @@ def parse_cem(cem_bytes: bytes):
     print("\n########## Header length: %d bytes\n" % (52+header["name_length"]) )
 
     # check against CEM version (currently only v2 is supported)
-    if header["cem_version"] != 2:
-        raise TypeError(f'Unsupported CEM version! ({header["cem_version"]}) Currently only CEM v2 is supported.')
+    if cem_version != 2:
+        raise TypeError(f'Unsupported CEM version ({cem_version})! Currently only CEM v2 is supported.')
         return {'CANCELLED'}
 
     for _ in range(header["lod_levels"]):
