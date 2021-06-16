@@ -101,6 +101,10 @@ def parse_cem(cem_bytes: bytes):
         print(key, value)
     print("\n########## Header length: %d bytes\n" % (52+header["name_length"]) )
 
+    # check against CEM version (currently only v2 is supported)
+    if header["cem_version"] != 2:
+        raise TypeError(f'Unsupported CEM version! ({header["cem_version"]}) Currently only CEM v2 is supported.')
+        return {'CANCELLED'}
 
     for _ in range(header["lod_levels"]):
         num_indices = read_uint32_buff()
