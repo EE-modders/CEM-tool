@@ -90,7 +90,7 @@ def parse_cem(cem_bytes: bytes):
 
     header_template = [ "cem_version", "faces", "vertices", "tag_points", "materials", "frames", "child_models", "lod_levels", "name_length" ]
 
-    values = struct.unpack("<IIIIIIIII", cemfile.read(36)) # 9 * 4 bytes = 36
+    values = struct.unpack("<9I", cemfile.read(36)) # 9 * 4 bytes = 36
     header = dict(zip(header_template, values))
 
     header["name"] = cemfile.read(header["name_length"])[:-1] # [:-1] removes the last byte which is a delimiter (0x00) in this case
@@ -422,7 +422,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
             faces = list()
             
             plane_object_name = "%i:none:%i" % (m+1, materials[m]["texture_index"])
-            if materials[m]["material_name"] is not b'':
+            if materials[m]["material_name"] != b'':
                 plane_object_name = "%i:%s:%i" % (m+1, materials[m]["material_name"].decode(), materials[m]["texture_index"])
             
             for j in range(materials[m]["triangle_selections"][lod_lvl][1]): # Material length
@@ -505,7 +505,7 @@ def main_function_import_file(filename: str, bTagPoints: bool, bTransform: bool,
                         red_rgba_color = [1, 0, 0, 1]
 
                         pl_color_index = bpy.data.materials.find(mat_name)
-                        if pl_color_index is -1:
+                        if pl_color_index == -1:
                             player_color_mat = bpy.data.materials.new(mat_name)
                         else:
                             player_color_mat = bpy.data.materials[pl_color_index]
