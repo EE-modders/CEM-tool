@@ -240,7 +240,7 @@ def transform_vector(vector: Vector, matrix: Matrix):
     return kath_vec
 
 # here is a problem, because in blender empty objects do *NOT* have an origin! (and I need to one not overwrite the world matrix)
-# SOLVED: multiplying the inversed world matrix does provice the relative position to origin! (see CEMexporter)
+# SOLVED: multiplying the inversed world matrix does provide the relative position to origin! (see CEMexporter)
 def add_point(point_name: str, location: Vector, trans_matrix: Matrix, collection: bpy.types.Collection, empty: list()):
     empty.append(bpy.data.objects.new(point_name, None))
     empty[-1].empty_display_size = empty_size
