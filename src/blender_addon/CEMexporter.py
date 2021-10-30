@@ -276,6 +276,7 @@ def main_function_export_file(filename: str):
         for i, _ in enumerate(mesh_col.objects):
             for curr_object in mesh_col.objects:
                 # check if Blender index matches the index in the object name
+                #print("AAAAAAAAAAA "+curr_object.name)
                 if not curr_object.name.startswith(f"{i+1}:"): continue
 
                 matID, matName, matTextureindex = curr_object.name.split(':')
@@ -333,12 +334,17 @@ def main_function_export_file(filename: str):
             print("header center:", header["center"])
             frames[j]["radius"] = max( [ (v-bbox_center).length for v in vertices ] )**2
             tmp = list()
-            for v in range(nVerts):
-                tmp.append(dict())
-                tmp[v]["point"] = vertices[v].to_tuple()
-                tmp[v]["normal"] = normals[v].to_tuple()
-                if texture_uvs[v] == 0: texture_uvs[v] = Vector((0, 0)) # if vertex has to UV point value assigned, it will be 0 (replacing it with (0, 0) vector, because CEM forces a UV value)
-                tmp[v]["texture"] = texture_uvs[v].to_tuple()
+            try:
+                for v in range(nVerts):
+                    tmp.append(dict())
+                    tmp[v]["point"] = vertices[v].to_tuple()
+                    tmp[v]["normal"] = normals[v].to_tuple()
+                    if texture_uvs[v] == 0: texture_uvs[v] = Vector((0, 0)) # if vertex has to UV point value assigned, it will be 0 (replacing it with (0, 0) vector, because CEM forces a UV value)
+                    tmp[v]["texture"] = texture_uvs[v].to_tuple()
+            except IndexError: # this happens when the enumeration of the items in the model is not sequential (1, 2, 3, 4, 5....)
+                ShowMessageBox(title="Export error", message="Object enumeration must be sequential, starting from '1:' and with no gaps", icon='ERROR')
+                return False
+
             frames[j]["vertices"] = tmp
 
             tmp_arr_tp = [ inverse_transform_vector(vector=tp.location, matrix=transformation_matrix) for tp in mesh_col.children[0].objects ]
