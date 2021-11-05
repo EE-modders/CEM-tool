@@ -6,7 +6,6 @@ import sys
 import struct
 
 from io import BytesIO
-from math import radians
 from mathutils import Vector, Matrix
 
 
@@ -30,7 +29,7 @@ def generate_cem( header: dict(), indices: list(), materials: list(), tag_points
     yVal = 1
     zVal = 2
     lod_lvl = 0 #  only one LOD level will get exported
-    frame_num = 0 # only the first Frame will get exported (no animations for now)
+    frame_num = 0 # only the first frame will get exported (no animations for now)
 
     write_uint32 = lambda x: cemfile.write(struct.pack("<I", x))
     write_float = lambda x: cemfile.write(struct.pack("<f", x))
