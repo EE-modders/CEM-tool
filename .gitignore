@@ -1,7 +1,11 @@
 .directory
-src/blender_addon
+.vscode/
+__*/
 
 *.cem
 *.obj
 *.zip
 *.lnk
+
+samples/
+testing/
