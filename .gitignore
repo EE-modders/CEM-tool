@@ -9,3 +9,5 @@ __*/
 
 samples/
 testing/
+
+venv/
