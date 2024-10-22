@@ -2,8 +2,8 @@ bl_info = {
     "name" : "Empire Earth CEM-tool",
     "author" : "zocker_160",
     "description" : "addon for importing and exporting Empire Earth CEM files",
-    "blender" : (2, 93, 5),
-    "version" : (0, 25),
+    "blender" : (4, 2, 3),
+    "version" : (0, 26),
     "location" : "File > Import",
     "warning" : "This addon is still WiP and will contain bugs!",
     "category" : "Import-Export",
@@ -11,34 +11,20 @@ bl_info = {
 }
 
 import bpy
-import importlib
 
-from . import CEMimporter as CEMi
-from . import CEMexporter as CEMex
+from .CEMimport import cemImport
+from . import utils
 
 from bpy.props import StringProperty, BoolProperty, EnumProperty
-# ImportHelper is a helper class, defines filename and
-# invoke() function which calls the file selector.
 from bpy_extras.io_utils import ImportHelper, path_reference_mode
 
+#import importlib
+#importlib.reload(CEMimporter)
 
-importlib.reload(CEMimporter)
-
-def import_cem(context, filepath: str, bTagPoints: bool, bCleanup: bool, bTransform: bool, bValidate: bool, lod_level: str, frame_num: str):
-    print("starting import of", filepath)
-
-    if bCleanup:
-        print("CLEANING UP")
-        CEMi.cleanup()
-    return CEMi.main_function_import_file(filename=filepath, bTagPoints=bTagPoints, bTransform=bTransform, bValidate=bValidate, lod_lvl=int(lod_level), frame_num=int(frame_num))
-
-def export_cem(context, filepath: str):
-    print("starting export of", filepath)
-
-    return CEMex.main_function_export_file(filename=filepath)
 
 class ImportCEM(bpy.types.Operator, ImportHelper):
-    """Import an Empire Earth (AoC) CEM file"""
+#class ImportCEM(bpy.types.Operator):
+    """Import an Empire Earth CEM file"""
     bl_idname = "import_scene.cem"  # important since its how bpy.ops.import_test.some_data is constructed
     bl_label = "Import CEM"
 
@@ -53,26 +39,10 @@ class ImportCEM(bpy.types.Operator, ImportHelper):
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    setting_matrix_transform: BoolProperty(
-        name="apply transformation matrix",
-        description="if enabled, the included transformation matrix will get applied to the objects",
-        default=True,
-    )
-    setting_tag_points: BoolProperty(
-        name="import Tag Points",
-        description="imports all Tag Points stored in the CEM file",
-        default=True,
-    )
-    setting_validate: BoolProperty(
-        name="validate vertex",
-        description="lets Blender validate the imported vertex (disabling can fix broken imports)",
-        default=True,
-    )
-
     setting_cleanup: BoolProperty(
         name="clean whole scene (!)",
         description="removes all objects and collections before import",
-        default=False,
+        default=True,
     )
 
     lod_lvl: EnumProperty(
@@ -93,40 +63,16 @@ class ImportCEM(bpy.types.Operator, ImportHelper):
         default='0',
     )
 
-    frame_num: EnumProperty(
-        name="Number of frames",
-        description="select number of frames to be imported",
-        items=(
-            ('0', "all", "Import all frames"),
-            ('1', "1", "single Frame"),
-            ('2', "2", "2 Frames"),
-            ('3', "3", "3 Frames"),
-            ('4', "4", "4 Frames"),
-            ('5', "5", "5 Frames"),
-            ('6', "6", "6 Frames"),
-            ('7', "7", "7 Frames"),
-            ('8', "8", "8 Frames"),
-            ('9', "9", "9 Frames"),
-            ('10', "10", "10 Frames"),
-        ),
-        default='0',
-    )
-
     def execute(self, context):
-        print(self.filepath, self.setting_cleanup, self.setting_tag_points, self.lod_lvl)
-        if import_cem(
-            context,
-            filepath=self.filepath,
-            bCleanup=self.setting_cleanup,
-            bTagPoints=self.setting_tag_points,
-            bTransform=self.setting_matrix_transform,
-            bValidate=self.setting_validate,
-            lod_level=self.lod_lvl, 
-            frame_num=self.frame_num
-            ):
-            return {'FINISHED'}
-        else:
-            return {'CANCELLED'}
+        print(self.filepath, self.setting_cleanup, self.lod_lvl)
+
+        if self.setting_cleanup:
+            print("cleaning up")
+            utils.cleanup()
+
+        cemImport(self.filepath, int(self.lod_lvl))
+        return {'FINISHED'}
+
 
 class ExportCEM(bpy.types.Operator, ImportHelper):
     """Export an Empire Earth (AoC) CEM file"""
@@ -211,20 +157,20 @@ def menu_func_export(self, context):
     self.layout.operator(ExportCEM.bl_idname, text="Empire Earth (.cem)")
 
 def register():
-    bpy.utils.register_class(ImportCEM)
-    bpy.utils.register_class(ExportCEM)
     bpy.utils.register_class(PrepareCemOperator)
-    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
-    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
+    bpy.utils.register_class(ImportCEM)
+    #bpy.utils.register_class(ExportCEM)
+    #bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+    #bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
     bpy.utils.register_class(ErrorMessage)
 
 def unregister():
-    bpy.utils.unregister_class(ImportCEM)
-    bpy.utils.unregister_class(ExportCEM)
     bpy.utils.unregister_class(PrepareCemOperator)
-    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
-    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
+    bpy.utils.unregister_class(ImportCEM)
+    #bpy.utils.unregister_class(ExportCEM)
+    #bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+    #bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
     bpy.utils.unregister_class(ErrorMessage)
 
