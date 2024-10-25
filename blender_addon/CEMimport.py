@@ -7,7 +7,7 @@ from . import utils
 
 from .CEM2 import CEMv2
 
-EMPTY_SIZE = 0.08
+EMPTY_SIZE = 0.04
 
 def cemImport(filename: str, lodLevel: int):
     print("loading", filename)
@@ -127,4 +127,6 @@ def _cemImport(cem: CEMv2, lodLevel: int, childCollection: bpy.types.Collection)
             locVec = Vector(frame.tagPoints[i].toTuple())
 
             tagPoint.location = transMatrix @ locVec
-            tagPoint.keyframe_insert("location", frame=n)
+
+            if cem.header.frames > 1:
+                tagPoint.keyframe_insert("location", frame=n)
