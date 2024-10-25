@@ -139,7 +139,7 @@ class Header:
     frames: int = 0
 
     childModels: int = 0
-    lodLevels: int = 0
+    lodLevels: int = 1
 
     name: str = "Scene Root"
     center: Vector3d = field(default_factory=Vector3d)
