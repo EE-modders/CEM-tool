@@ -29,7 +29,7 @@ def writeString(f: BufferedWriter, value: str) -> int:
     value = value.encode("iso8859-15")
     value = checkNullTerminator(value)
 
-    writeInt(len(value))
+    writeInt(f, len(value))
     return f.write(value)
 
 

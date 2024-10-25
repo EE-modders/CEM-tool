@@ -6,7 +6,7 @@ Created for the Blender CEM Plugin.
 @author zocker_160
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .utils import *
 
@@ -16,9 +16,9 @@ CEM_MAGIC = b"SSMF"
 
 @dataclass
 class Vector3d:
-    x: float
-    y: float
-    z: float
+    x: float = 0
+    y: float = 0
+    z: float = 0
 
     @staticmethod
     def parse(f: BufferedReader):
@@ -27,10 +27,13 @@ class Vector3d:
     def toTuple(self) -> tuple:
         return (self.x, self.y, self.z)
 
+    def serialize(self, f: BufferedWriter):
+        f.write(struct.pack("<fff", *self.toTuple()))
+
 @dataclass
 class Vector2d:
-    u: float
-    v: float
+    u: float = 0
+    v: float = 0
 
     @staticmethod
     def parse(f: BufferedReader):
@@ -38,6 +41,9 @@ class Vector2d:
 
     def toTuple(self) -> tuple:
         return (self.u, self.v)
+
+    def serialize(self, f: BufferedWriter):
+        f.write(struct.pack("<ff", *self.toTuple()))
 
 @dataclass
 class Matrix4x4:
@@ -64,12 +70,7 @@ class Matrix4x4:
     @staticmethod
     def parse(f: BufferedReader):
         t = struct.unpack("<16f", f.read(16 * 4))
-        return Matrix4x4(
-            t[0], t[1], t[2], t[3],
-            t[4], t[5], t[6], t[7],
-            t[8], t[9], t[10], t[11],
-            t[12], t[13], t[14], t[15],
-        )
+        return Matrix4x4(*t)
 
     def toTuple(self) -> tuple:
         return (
@@ -87,6 +88,10 @@ class Matrix4x4:
         [{self.m41}, {self.m42}, {self.m43}, {self.m44}]
         """
 
+    def serialize(self, f: BufferedWriter):
+        for row in self.toTuple():
+            f.write(struct.pack("<4f", *row))
+
 @dataclass
 class Vertex:
     point: Vector3d
@@ -101,30 +106,43 @@ class Vertex:
             texture=Vector2d.parse(f)
         )
 
+    def serialize(self, f: BufferedWriter):
+        self.point.serialize(f)
+        self.normal.serialize(f)
+        self.texture.serialize(f)
+
 @dataclass
 class Face:
     a: int
     b: int
     c: int
 
+    @staticmethod
+    def parse(f: BufferedReader):
+        t = struct.unpack("<III", f.read(4 * 3))
+        return Face(*t)
+
     def toTuple(self) -> tuple:
         return (self.a, self.b, self.c)
 
+    def serialize(self, f: BufferedWriter):
+        f.write(struct.pack("<III", *self.toTuple()))
+
 @dataclass
 class Header:
-    version: float
+    version: float = 2
 
-    faces: int
-    vertices: int
-    tagPoints: int
-    materials: int
-    frames: int
+    faces: int = 0
+    vertices: int = 0
+    tagPoints: int = 0
+    materials: int = 0
+    frames: int = 0
 
-    childModels: int
-    lodLevels: int
+    childModels: int = 0
+    lodLevels: int = 0
 
-    name: str
-    center: Vector3d
+    name: str = "Scene Root"
+    center: Vector3d = field(default_factory=Vector3d)
 
     @staticmethod
     def parse(f: BufferedReader):
@@ -143,6 +161,22 @@ class Header:
             name=readString(f),
             center=Vector3d.parse(f)
         )
+
+    def serialize(self, f: BufferedWriter):
+        vMaj = int(self.version)
+        vMin = int((self.version - vMaj) * 10)
+
+        writeShort(f, vMaj)
+        writeShort(f, vMin)
+        writeInt(f, self.faces)
+        writeInt(f, self.vertices)
+        writeInt(f, self.tagPoints)
+        writeInt(f, self.materials)
+        writeInt(f, self.frames)
+        writeInt(f, self.childModels)
+        writeInt(f, self.lodLevels)
+        writeString(f, self.name)
+        self.center.serialize(f)
 
 @dataclass
 class Material:
@@ -167,10 +201,19 @@ class Material:
             textureName=readString(f)
         )
 
+    def serialize(self, f: BufferedWriter):
+        writeString(f, self.name)
+        writeInt(f, self.textureIndex)
+        for selection in self.triangleSelections:
+            f.write(struct.pack("<II", *selection))
+        writeInt(f, self.vertexOffset)
+        writeInt(f, self.vertexCount)
+        writeString(f, self.textureName)
+
 @dataclass
 class Frame:
     radius: float
-    
+
     vertices: list[Vertex]
     tagPoints: list[Vector3d]
 
@@ -190,6 +233,15 @@ class Frame:
             upperBound=Vector3d.parse(f)
         )
 
+    def serialize(self, f: BufferedWriter):
+        writeFloat(f, self.radius)
+        for vertex in self.vertices:
+            vertex.serialize(f)
+        for tagPoint in self.tagPoints:
+            tagPoint.serialize(f)
+        self.transformationMatrix.serialize(f)
+        self.lowerBound.serialize(f)
+        self.upperBound.serialize(f)
 
 @dataclass
 class CEMv2:
@@ -219,7 +271,7 @@ class CEMv2:
             numFaces = readInt(f)
 
             for _ in range(numFaces):
-                fc.append(Face(*struct.unpack("<III", f.read(12))))
+                fc.append(Face.parse(f))
 
             faces.append(fc)
 
@@ -263,6 +315,24 @@ class CEMv2:
             frames=frames,
             tagPoints=tagPoints
         )
+
+    def serialize(self, f: BufferedWriter):
+        f.write(CEM_MAGIC)
+        self.header.serialize(f)
+
+        for i in range(self.header.lodLevels):
+            writeInt(f, len(self.faces[i]))
+            for face in self.faces[i]:
+                face.serialize(f)
+
+        for i in range(self.header.materials):
+            self.materials[i].serialize(f)
+
+        for i in range(self.header.tagPoints):
+            writeString(f, self.tagPoints[i])
+
+        for i in range(self.header.frames):
+            self.frames[i].serialize(f)
 
 
 ## testing only
