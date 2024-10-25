@@ -55,6 +55,97 @@ def getTagPoints(collection: bpy.types.Collection):
 
     return tagPointNames, tagPointsVertex
 
+def getVertexData(childCollection: bpy.types.Collection):
+    bboxPoints = list()
+    vertices: list[Vertex] = list()
+    materials: list[Material] = list()
+    faces: list[Face] = list()
+    transformationMatrix: Matrix
+
+    # since Blender likes to shuffle the order around,
+    # I need to search for the right object in order to keep the right order
+    for i, _ in enumerate(childCollection.objects):
+        for obj in childCollection.objects:
+            if not obj.name.startswith(f"{i+1}:"):
+                continue
+
+            matID, matName, matTexIndex = obj.name.split(":")
+            matTexIndex = int(matTexIndex.split(".")[0])
+
+            if "BOUNDING BOX" in matName:
+                continue
+            else:
+                print("parsing", obj.name, matName, matTexIndex)
+
+
+            if obj.mode == "EDIT":
+                ShowMessageBox(
+                    title="export error",
+                    message="please disable edit mode!",
+                    icon='ERROR'
+                )
+                raise TypeError("please disable edit mode!")
+
+            try:
+                # deselect all objects - creates error, when edit mode is enabled
+                bpy.ops.object.select_all(action='DESELECT')
+            except RuntimeError:
+                # export will fail when in edit mode
+                ShowMessageBox(
+                    title="export error",
+                    message="ERROR: do you have edit mode enabled??",
+                    icon='ERROR'
+                )
+                raise TypeError("ERROR: do you have edit mode enabled??")
+
+            if not checkTransforms(obj):
+                ShowMessageBox(
+                    title="export warning",
+                    message="please check your rotation, scaling and location settings, it might look wrong in the game!",
+                    icon='INFO'
+                )
+
+            bboxPoints += obj.bound_box
+            transformationMatrix = obj.matrix_world
+            vertexOffset = len(vertices)
+
+            materials.append( Material(
+                name=matName,
+                textureIndex=matTexIndex,
+                textureName="",
+                triangleSelections=[(len(faces), len(obj.data.polygons))],
+                vertexOffset=vertexOffset,
+                vertexCount=len(obj.data.vertices)
+            ) )
+
+
+            for vertex in obj.data.vertices:
+                vertices.append( Vertex(
+                    point=Vector3d(*vertex.co.to_tuple()),
+                    normal=Vector3d(*vertex.normal.to_tuple()),
+                    texture=Vector2d()
+                ) )
+
+            for polygon in obj.data.polygons:
+                face = list()
+                for li in polygon.loop_indices:
+                    vIndex = obj.data.loops[li].vertex_index
+                    uv = obj.data.uv_layers[0].data[li].uv
+
+                    vertices[vIndex + vertexOffset].texture = Vector2d(uv[0], 1 - uv[1])
+                    face.append(vIndex)
+
+                if len(face) > 3:
+                    ShowMessageBox(
+                        title="export warning",
+                        message="CEM only supports triangles, please triangulate!"
+                    )
+                    raise TypeError("CEM only supports triangles, please triangulate!")
+
+                faces.append( Face(face[0], face[1], face[2]) )
+
+    return bboxPoints, vertices, materials, faces, transformationMatrix
+
 
 def cemExport(filename: str):
     print("saving", filename)
@@ -69,6 +160,7 @@ def cemExport(filename: str):
 def _cemExport() -> list[CEMv2]:
     print("generating CEM")
 
+    currScene = bpy.context.scene
     mainCollection = bpy.context.scene.collection.children[0]
 
     if not mainCollection.name.startswith("M:"):
@@ -87,10 +179,6 @@ def _cemExport() -> list[CEMv2]:
         header = Header()
         header.name = childCollection.name.split(":")[-1]
         header.lodLevels = 1
-        header.frames = 1 # no animations for now
-
-        tagPointNames, tagPointVertex = getTagPoints(childCollection)
-        header.tagPoints = len(tagPointNames)
 
 
         bboxPoints = list()
@@ -98,115 +186,47 @@ def _cemExport() -> list[CEMv2]:
         materials: list[Material] = list()
         faces: list[Face] = list()
         transformationMatrix = Matrix()
-
-        # since Blender likes to shuffle the order around,
-        # I need to search for the right object in order to keep the right order
-        for i, _ in enumerate(childCollection.objects):
-            for obj in childCollection.objects:
-                if not obj.name.startswith(f"{i+1}:"):
-                    continue
-
-                matID, matName, matTexIndex = obj.name.split(":")
-                matTexIndex = int(matTexIndex.split(".")[0])
-
-                if "BOUNDING BOX" in matName:
-                    continue
-                else:
-                    print("parsing", obj.name, matName, matTexIndex)
+        tagPointNames: list[str] = list()
 
 
-                if obj.mode == "EDIT":
-                    ShowMessageBox(
-                        title="export error",
-                        message="please disable edit mode!",
-                        icon='ERROR'
-                    )
-                    return False
+        frames: list[Frame] = list()
+        numFrames = currScene.frame_end - currScene.frame_start + 1
 
-                try:
-                    # deselect all objects - creates error, when edit mode is enabled
-                    bpy.ops.object.select_all(action='DESELECT')
-                except RuntimeError:
-                    # export will fail when in edit mode
-                    ShowMessageBox(
-                        title="export error",
-                        message="ERROR: do you have edit mode enabled??",
-                        icon='ERROR'
-                    )
-                    return False
+        for i, frame in enumerate(range(numFrames)):
+            currScene.frame_current = frame
 
-                if not checkTransforms(obj):
-                    ShowMessageBox(
-                        title="export warning",
-                        message="please check your rotation, scaling and location settings, it might look wrong in the game!",
-                        icon='INFO'
-                    )
+            tagPointNames, tagPointVertex = getTagPoints(childCollection)
+            bboxPoints, vertices, materials, faces, transformationMatrix = getVertexData(childCollection)
+            maxV, minV, centerP = calcBounds(bboxPoints)
 
-                bboxPoints += obj.bound_box
-                vertexOffset = len(vertices)
-                transformationMatrix = obj.matrix_world
-                transformationMatrixInv = obj.matrix_world.inverted()
+            if i == 0:
+                header.vertices = len(vertices)
+                header.materials = len(materials)
+                header.faces = len(faces)
+                header.tagPoints = len(tagPointNames)
+                header.center = Vector3d(centerP.x, centerP.y, centerP.z)
 
-                materials.append( Material(
-                    name=matName,
-                    textureIndex=matTexIndex,
-                    textureName="",
-                    triangleSelections=[(len(faces), len(obj.data.polygons))],
-                    vertexOffset=vertexOffset,
-                    vertexCount=len(obj.data.vertices)
-                ) )
+            transformationMatrixInv = transformationMatrix.inverted()
+            tagPointVertex = [transformationMatrixInv @ v for v in tagPointVertex]
+            transMat = Matrix4x4(*chain.from_iterable([row.to_tuple() for row in transformationMatrix.row]))
+
+            frames.append(Frame(
+                radius=(maxV - minV).length_squared,
+                vertices=vertices,
+                tagPoints=[Vector3d(*x.to_tuple()) for x in tagPointVertex],
+                transformationMatrix=transMat,
+                lowerBound=Vector3d(*minV.to_tuple()),
+                upperBound=Vector3d(*maxV.to_tuple())
+            ))
 
 
-                for vertex in obj.data.vertices:
-                    vertices.append( Vertex(
-                        point=Vector3d(*vertex.co.to_tuple()),
-                        normal=Vector3d(*vertex.normal.to_tuple()),
-                        texture=Vector2d()
-                    ) )
-
-                for polygon in obj.data.polygons:
-                    face = list()
-                    for li in polygon.loop_indices:
-                        vIndex = obj.data.loops[li].vertex_index
-                        uv = obj.data.uv_layers[0].data[li].uv
-
-                        vertices[vIndex + vertexOffset].texture = Vector2d(uv[0], 1 - uv[1])
-                        face.append(vIndex)
-
-                    if len(face) > 3:
-                        ShowMessageBox(
-                            title="export warning",
-                            message="CEM only supports triangles, please triangulate!"
-                        )
-                        return
-
-                    faces.append( Face(face[0], face[1], face[2]) )
-
-
-        header.vertices = len(vertices)
-        header.materials = len(materials)
-        header.faces = len(faces)
-
-        maxV, minV, centerP = calcBounds(bboxPoints)
-        header.center = Vector3d(centerP.x, centerP.y, centerP.z)
-
-        tagPointVertex = [transformationMatrixInv @ v for v in tagPointVertex]
-        transMat = Matrix4x4(*chain.from_iterable([row.to_tuple() for row in transformationMatrix.row]))
-
-        frame = Frame(
-            radius=(maxV - minV).length_squared,
-            vertices=vertices,
-            tagPoints=[Vector3d(*x.to_tuple()) for x in tagPointVertex],
-            transformationMatrix=transMat,
-            lowerBound=Vector3d(*minV.to_tuple()),
-            upperBound=Vector3d(*maxV.to_tuple())
-        )
+        header.frames = len(frames)
 
         cemParts.append(CEMv2(
             header=header,
             faces=[faces],
             materials=materials,
-            frames=[frame],
+            frames=frames,
             tagPoints=tagPointNames
         ))
         # not too great, but ok

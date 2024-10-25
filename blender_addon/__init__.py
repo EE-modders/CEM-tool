@@ -13,6 +13,7 @@ bl_info = {
 import bpy
 
 from .CEMimport import cemImport
+from .CEMexport import cemExport
 from . import utils
 
 from bpy.props import StringProperty, BoolProperty, EnumProperty
@@ -42,7 +43,7 @@ class ImportCEM(bpy.types.Operator, ImportHelper):
     setting_cleanup: BoolProperty(
         name="clean whole scene (!)",
         description="removes all objects and collections before import",
-        default=True,
+        default=False,
     )
 
     lod_lvl: EnumProperty(
@@ -74,6 +75,7 @@ class ImportCEM(bpy.types.Operator, ImportHelper):
         return {'FINISHED'}
 
 
+#class ExportCEM(bpy.types.Operator):
 class ExportCEM(bpy.types.Operator, ImportHelper):
     """Export an Empire Earth (AoC) CEM file"""
     bl_idname = "export_scene.cem"  # important since its how bpy.ops.import_test.some_data is constructed
@@ -90,20 +92,10 @@ class ExportCEM(bpy.types.Operator, ImportHelper):
         maxlen=255,  # Max internal buffer length, longer would be clamped.
     )
 
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
-    #setting_matrix_transform: BoolProperty(
-    #    name="apply transformation matrix",
-    #    description="if enabled, the included transformation matrix will get applied to the objects",
-    #    default=True,
-    #)
-
     def execute(self, context):
-        print(self.filepath)
-        if export_cem(context, filepath=self.filepath):
-            return {'FINISHED'}
-        else:
-            return {'CANCELLED'}
+        cemExport(self.filepath)
+        return {'FINISHED'}
+
 
 class PrepareCemOperator(bpy.types.Operator):
     bl_idname = "sequencer.collection_operator"
@@ -159,7 +151,7 @@ def menu_func_export(self, context):
 def register():
     bpy.utils.register_class(PrepareCemOperator)
     bpy.utils.register_class(ImportCEM)
-    #bpy.utils.register_class(ExportCEM)
+    bpy.utils.register_class(ExportCEM)
     #bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     #bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
@@ -168,7 +160,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(PrepareCemOperator)
     bpy.utils.unregister_class(ImportCEM)
-    #bpy.utils.unregister_class(ExportCEM)
+    bpy.utils.unregister_class(ExportCEM)
     #bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     #bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
