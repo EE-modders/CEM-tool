@@ -3,7 +3,7 @@ bl_info = {
     "author" : "zocker_160",
     "description" : "addon for importing and exporting Empire Earth CEM files",
     "blender" : (4, 2, 3),
-    "version" : (0, 26),
+    "version" : (1, 0),
     "location" : "File > Import",
     "warning" : "This addon is still WiP and will contain bugs!",
     "category" : "Import-Export",
@@ -156,8 +156,8 @@ def register():
     bpy.utils.register_class(PrepareCemOperator)
     bpy.utils.register_class(ImportCEM)
     bpy.utils.register_class(ExportCEM)
-    #bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
-    #bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
 
     bpy.utils.register_class(ErrorMessage)
 
@@ -165,8 +165,8 @@ def unregister():
     bpy.utils.unregister_class(PrepareCemOperator)
     bpy.utils.unregister_class(ImportCEM)
     bpy.utils.unregister_class(ExportCEM)
-    #bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
-    #bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
 
     bpy.utils.unregister_class(ErrorMessage)
 
