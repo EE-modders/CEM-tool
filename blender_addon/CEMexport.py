@@ -1,4 +1,5 @@
 
+import sys
 from itertools import chain
 
 import bpy
@@ -20,7 +21,7 @@ from .CEM2 import (
 
 def checkTransforms(object: bpy.types.Object):
     for scale in object.scale:
-        if scale != 1.0:
+        if abs(scale - 1) > 0.001: # smallest diff for Blender
             return False
 
     return True
@@ -137,7 +138,7 @@ def _cemExport() -> list[CEMv2]:
                 if not checkTransforms(obj):
                     ShowMessageBox(
                         title="export warning",
-                        message="Pls check your rotation, scaling and location settings, it might look wrong in the game!",
+                        message="please check your rotation, scaling and location settings, it might look wrong in the game!",
                         icon='INFO'
                     )
 
