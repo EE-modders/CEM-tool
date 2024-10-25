@@ -12,15 +12,12 @@ bl_info = {
 
 import bpy
 
-from .CEMimport import cemImport
+from .CEMimport import cemImport, EMPTY_SIZE
 from .CEMexport import cemExport
 from . import utils
 
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy_extras.io_utils import ImportHelper, path_reference_mode
-
-#import importlib
-#importlib.reload(CEMimporter)
 
 
 class ImportCEM(bpy.types.Operator, ImportHelper):
@@ -110,7 +107,7 @@ class PrepareCemOperator(bpy.types.Operator):
 
     def add_empty_placeholder(self, name: str, collection: bpy.types.Collection):
         tmp_obj = bpy.data.objects.new(name, None)
-        tmp_obj.empty_display_size = CEMi.empty_size
+        tmp_obj.empty_display_size = EMPTY_SIZE
         tmp_obj.empty_display_type = 'PLAIN_AXES'
 
         collection.objects.link(tmp_obj)
@@ -118,16 +115,23 @@ class PrepareCemOperator(bpy.types.Operator):
     def execute(self, context):
         print("creating fresh CEM structure")
 
-        main_col = CEMi.add_collection("M:newUnit.cem.LOD 0")
-        scene_root_col = CEMi.add_collection_child(name="1:Scene Root", parent_collection=main_col)
-        tag_point_col = CEMi.add_collection_child(name="tag points", parent_collection=scene_root_col)
+        currScene = bpy.context.scene
 
-        self.add_cube_placeholder(name="1:none-tmp:0", collection=scene_root_col)
-        self.add_cube_placeholder(name="2:player color-tmp:0", collection=scene_root_col)
+        mainCol = bpy.data.collections.new("M:newUnit.cem.LOD 0")
+        currScene.collection.children.link(mainCol)
 
-        self.add_empty_placeholder(name="attack", collection=tag_point_col)
-        self.add_empty_placeholder(name="damage_trail_1", collection=tag_point_col)
-        self.add_empty_placeholder(name="weapon_mount_1", collection=tag_point_col)
+        sceneRoot = bpy.data.collections.new("1:Scene Root")
+        mainCol.children.link(sceneRoot)
+
+        tagPoints = bpy.data.collections.new("tag points")
+        sceneRoot.children.link(tagPoints)
+
+        self.add_cube_placeholder(name="1:none-tmp:0", collection=sceneRoot)
+        self.add_cube_placeholder(name="2:player color-tmp:0", collection=sceneRoot)
+
+        self.add_empty_placeholder(name="attack", collection=tagPoints)
+        self.add_empty_placeholder(name="damage_trail_1", collection=tagPoints)
+        self.add_empty_placeholder(name="weapon_mount_1", collection=tagPoints)
 
         return {'FINISHED'}
 
