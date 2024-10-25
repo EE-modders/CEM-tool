@@ -70,10 +70,6 @@ def _cemImport(cem: CEMv2, lodLevel: int, childCollection: bpy.types.Collection)
             bbox.location = transMatrix.translation + (bboxMin + bboxMax) / 2
             bbox.rotation_euler = transMatrix.to_euler()
 
-            bbox.keyframe_insert("location", frame=n)
-            bbox.keyframe_insert("rotation_euler", frame=n)
-            bbox.keyframe_insert("scale", frame=n)
-
             vStart = material.vertexOffset
             vEnd = vStart + material.vertexCount
             points = [Vector(x.point.toTuple()) for x in frame.vertices[vStart:vEnd]]
@@ -104,12 +100,18 @@ def _cemImport(cem: CEMv2, lodLevel: int, childCollection: bpy.types.Collection)
                     vertex.co = points[i]
 
             matObj.matrix_world = transMatrix
-            matObj.keyframe_insert("location", frame=n)
-            matObj.keyframe_insert("rotation_euler", frame=n)
-            matObj.keyframe_insert("scale", frame=n)
 
-            for vertex in matObj.data.vertices:
-                vertex.keyframe_insert("co", frame=n)
+            if cem.header.frames > 1:
+                matObj.keyframe_insert("location", frame=n)
+                matObj.keyframe_insert("rotation_euler", frame=n)
+                matObj.keyframe_insert("scale", frame=n)
+
+                bbox.keyframe_insert("location", frame=n)
+                bbox.keyframe_insert("rotation_euler", frame=n)
+                bbox.keyframe_insert("scale", frame=n)
+
+                for vertex in matObj.data.vertices:
+                    vertex.keyframe_insert("co", frame=n)
 
     # tag points
     pointCollection = bpy.data.collections.new("tag points")
