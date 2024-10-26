@@ -5,8 +5,6 @@ Blender addon for editing Empire Earth CEM files.
 ### Known limitations / bugs
 
 - only CEM v2 files are supported
-- no support for animations
-- bug when exporting child models with rotation animation
 
 ### How to use
 
@@ -16,4 +14,4 @@ A tutorial for the Blender addon can be found [here](https://github.com/EE-modde
 
 ### Requirements
 
-Blender 2.80 or newer
+Blender 4.2 or newer
