@@ -1,5 +1,5 @@
 ADDON_DIR=./blender_addon
-ZIP_NAME="CEMtool-Blender_1.0.zip"
+ZIP_NAME="CEMtool-Blender_1.1.zip"
 
 all: addon clean
 
