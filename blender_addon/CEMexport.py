@@ -19,6 +19,10 @@ from .CEM2 import (
 )
 
 
+class ExportError(Exception):
+    pass
+
+
 def checkTransforms(object: bpy.types.Object):
     for scale in object.scale:
         if abs(scale - 1) > 0.001: # smallest diff for Blender
@@ -150,11 +154,15 @@ def getVertexData(childCollection: bpy.types.Collection):
 def cemExport(filename: str):
     print("saving", filename)
 
-    cemParts = _cemExport()
+    try:
+        cemParts = _cemExport()
 
-    with open(filename, "wb") as f:
-        for cem in cemParts:
-            cem.serialize(f)
+        with open(filename, "wb") as f:
+            for cem in cemParts:
+                cem.serialize(f)
+    except ExportError as e:
+        ShowMessageBox(title="export error", icon="ERROR", message=str(e))
+        print("Export Error:", e)
 
 
 def _cemExport() -> list[CEMv2]:
@@ -164,15 +172,13 @@ def _cemExport() -> list[CEMv2]:
     mainCollection = bpy.context.scene.collection.children[0]
 
     if not mainCollection.name.startswith("M:"):
-        ShowMessageBox(title="export error", message="missing main collection", icon="ERROR")
-        return False
+        raise ExportError("missing main collection")
 
     cemParts: list[CEMv2] = list()
 
     for nc, childCollection in enumerate(mainCollection.children):
         if not childCollection.name.startswith(f"{nc+1}:"):
-            ShowMessageBox(title="export error", message="no valid CEM structure found!", icon='ERROR')
-            return False
+            raise ExportError("no valid CEM structure found")
 
         print("###", childCollection.name)
 
